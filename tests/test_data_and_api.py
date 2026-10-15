@@ -265,3 +265,15 @@ def test_llm_schema_has_no_nullable_enums():
             for v in node:
                 walk(v)
     walk(SCHEMA)
+
+
+def test_pure_refusal_never_reaches_llm(monkeypatch):
+    """合规前置：只有预测 / 承诺 / 建议类内容时，规则层直接拒绝，大模型不会被调用。"""
+    monkeypatch.setattr(llm, "available", lambda: True)
+
+    def must_not_call(*a, **k):
+        raise AssertionError("不应调用大模型")
+    monkeypatch.setattr(llm, "complete_json", must_not_call)
+    r = parse_llm.parse("明天会涨停的股票", {})
+    assert r.mode == "rules" and "合规拦截" in r.fallback_reason
+    assert [s.kind for s in r.segments if s.kind != "unsupported"] == ["refused"]

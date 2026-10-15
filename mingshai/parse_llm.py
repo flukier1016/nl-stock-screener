@@ -100,6 +100,11 @@ SYSTEM_TMPL = """你是“所以然”选股产品的意图解析器。你的唯
 
 def parse(query: str, industries: dict[str, str]) -> ParseResult:
     shadow = [s.model_copy(update={"by": "rules"}) for s in _guarded(rule_parse(query, industries), industries)[0]]
+    # 合规前置：整句只有预测涨跌、承诺收益、买卖建议这类内容时，规则层直接拒绝，不调用大模型
+    meaningful = [s for s in shadow if s.kind != "unsupported"]
+    if meaningful and all(s.kind == "refused" for s in meaningful):
+        return ParseResult(query=query, mode="rules", segments=shadow,
+                           fallback_reason="合规拦截：这句话只有预测或建议类内容，在调用大模型之前就被规则层拒绝")
     if not llm.available():
         return ParseResult(query=query, mode="rules", segments=shadow, rules_shadow=None,
                            fallback_reason="未配置大模型，使用规则解析")
