@@ -107,10 +107,12 @@ def parse(query: str, industries: dict[str, str]) -> ParseResult:
                            fallback_reason="合规拦截：这句话只有预测或建议类内容，在调用大模型之前就被规则层拒绝")
     if not llm.available():
         return ParseResult(query=query, mode="rules", segments=shadow, rules_shadow=None,
-                           fallback_reason="未配置大模型，使用规则解析")
+                           fallback_reason=f"{llm.unavailable_reason()}，使用规则解析")
     system = SYSTEM_TMPL.format(catalog=_catalog_text(sorted(industries)))
     try:
         data, info = llm.complete_json(system, f"用户原话：{query}", SCHEMA)
+    except llm.BudgetError as e:
+        return ParseResult(query=query, mode="rules_fallback", segments=shadow, fallback_reason=f"{e}，已改用规则解析")
     except llm.LLMError as e:
         return ParseResult(query=query, mode="rules_fallback", segments=shadow,
                            fallback_reason=f"大模型解析失败（{e}），已改用规则解析")

@@ -130,7 +130,10 @@ function renderTop() {
   } else {
     chips.push(`<span class="chip click" data-act="data-panel"><span class="dot bad"></span>真实数据未就绪</span>`);
   }
-  chips.push(`<span class="chip" title="意图解析方式">${icon("sparkles", "sm")}${llm.available ? "AI 解析" : "规则解析"}</span>`);
+  const bud = llm.budget;
+  const llmTip = llm.available ? `意图解析用 ${llm.model || "大模型"}${bud ? `；AI 额度剩 $${bud.remaining_usd.toFixed(2)}，总额 $${bud.limit_usd}` : ""}`
+    : (bud?.disabled ? bud.reason : "未配置大模型，按规则解析");
+  chips.push(`<span class="chip" title="${esc(llmTip)}">${icon("sparkles", "sm")}${llm.available ? "AI 解析" : "规则解析"}</span>`);
   chips.push(`<a class="toplink" href="${REPO}" target="_blank" rel="noopener">${icon("github", "sm")}源码</a>`);
   const dark = currentTheme() === "dark";
   $("#themeBox").innerHTML = `<span class="theme-seg" role="group" aria-label="显示模式"><button class="${dark ? "" : "on"}" data-act="theme" data-theme="light">${icon("sun", "sm")}日间</button><button class="${dark ? "on" : ""}" data-act="theme" data-theme="dark">${icon("moon", "sm")}夜间</button></span>`;

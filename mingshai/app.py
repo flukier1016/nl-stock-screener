@@ -34,6 +34,9 @@ store = Store()
 store.reload()
 @asynccontextmanager
 async def lifespan(_app):
+    st = llm.prepare_key()
+    print(f"[llm-budget] 已用 ${st['spent_usd']:.2f} / 上限 ${st['limit_usd']:g}"
+          + (f"；{st['reason']}" if st["disabled"] else ""), flush=True)
     threading.Thread(target=_scheduler, daemon=True).start()
     yield
 
@@ -290,7 +293,7 @@ def api_explain(body: ExplainIn, request: Request):
     res = run_cached(ds, body.strategy)
     summ = explain.summary(res, body.strategy)
     if not llm.available():
-        return {"ok": False, "reason": "未配置大模型", "fallback": summ["text"]}
+        return {"ok": False, "reason": llm.unavailable_reason(), "fallback": summ["text"]}
     conds = "\n".join(f"- {describe(c.metric, c.op, c.value, c.basis)}（{METRICS_BY_ID[c.metric].definition}）"
                       for c in body.strategy.conditions)
     funnel = "\n".join(f"- 满足前 {i + 1} 条后剩 {f['count']} 只" for i, f in enumerate(res["funnel"]))

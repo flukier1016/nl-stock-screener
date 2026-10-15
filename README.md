@@ -109,6 +109,10 @@
 **取数纪律**：每次请求写入 `data/ledger.jsonl`（接口、参数、HTTP 状态、业务 code、request_id、条数、耗时，不含 Key）；
 只对限流和上游暂时不可用做有限次退避重试；原始返回存 `data/work.duckdb` 支持断点续跑；快照先写临时文件，校验通过后原子替换。
 
+**AI 额度**：Claude 调用设了总额上限（默认 5 美元，不按月清零，开发期已花的部分计入）。每次调用前按最坏情况预留额度，
+调用后按接口返回的 usage 记实际花费，账本在 `data/llm_budget.json` 和 `data/llm_usage.jsonl`（只记 token 和金额）。
+剩余额度不够一次最坏情况调用时永久切断：删除服务器上的 Key 文件，之后解析自动走规则，页面写明原因。
+
 ## 6. 启动方式
 
 ```bash
@@ -120,7 +124,8 @@ cp .env.example .env          # 填扶摇 Key 文件路径；大模型可选
 
 没有任何 Key 也能体验流程：`MINGSHAI_DATA=demo` 启动，或访问 `/?data=demo`（合成数据，页面有 DEMO 横幅）。
 
-部署：仓库带 `Dockerfile` 和 `railway.json`。Railway 上挂一个持久卷到 `/data`，在环境变量里配置 Key；
+部署：仓库带 `Dockerfile` 和 `railway.json`。Railway 上挂一个持久卷到 `/data`，在环境变量里配置 Key
+（大模型 Key 在首次启动时搬进 `/data/llm.key`，之后应从平台环境变量里删掉，额度用完时服务删掉这个文件即可彻底切断）；
 服务启动后若没有快照会自动构建，之后每个交易日北京时间 16:30 后日更一次，日更完成后自动重跑所有监控任务。
 
 ### 环境变量
@@ -133,6 +138,8 @@ cp .env.example .env          # 填扶摇 Key 文件路径；大模型可选
 | `MINGSHAI_LLM_MODEL` | 模型名；Claude 默认 `claude-opus-5-5` |
 | `MINGSHAI_LLM_BASE_URL` | OpenAI 兼容接口地址（DeepSeek、通义等） |
 | `MINGSHAI_LLM_EFFORT` | Claude 的 effort，默认 `low`（解析任务不需要深度推理） |
+| `MINGSHAI_LLM_BUDGET_USD` | AI 调用总额上限，默认 `5`（美元，总额，不按月清零） |
+| `MINGSHAI_LLM_SPENT_OFFSET_USD` | 账本之外已经花掉的金额（如开发期调用），计入总额 |
 | `MINGSHAI_DATA` | `live`（默认）/ `demo` |
 | `MINGSHAI_DATA_DIR` | 快照、台账、保存的策略所在目录 |
 | `MINGSHAI_AUTO_BUILD` | `1` 时自动构建与日更 |
@@ -140,7 +147,7 @@ cp .env.example .env          # 填扶摇 Key 文件路径；大模型可选
 
 ## 7. 测试与评测
 
-- `pytest`：60 个用例，覆盖主链路、数据缺失与接口失败、合规拒绝、冲突、可复现性等，详见 [docs/TESTING.md](docs/TESTING.md)。
+- `pytest`：68 个用例，覆盖主链路、数据缺失与接口失败、合规拒绝、冲突、可复现性等，详见 [docs/TESTING.md](docs/TESTING.md)。
 - `eval/run_eval.py`：33 句意图解析评测（标准说法、口语、写明数字、行业、股票池、拒绝、无法识别）。
   规则 25/33（口语 0/6），Claude `claude-opus-5-5` 32/33（口语 6/6），逐条分析见 [docs/AI_USAGE.md](docs/AI_USAGE.md)。
 

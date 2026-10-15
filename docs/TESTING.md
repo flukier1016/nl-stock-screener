@@ -5,7 +5,7 @@
 .venv/bin/python eval/run_eval.py     # 意图解析评测（规则）；加 --llm 同时评测大模型
 ```
 
-当前结果：**60 passed**；意图解析评测：规则 25/33，Claude 32/33（详见 `eval/results/`）。
+当前结果：**68 passed**；意图解析评测：规则 25/33，Claude 32/33（详见 `eval/results/`）。
 
 ## 1. 主链路
 
@@ -38,6 +38,19 @@
 | 大模型超时 / 返回非法 JSON | 自动退回规则解析，页面写明原因 | `test_llm_failure_falls_back_to_rules` |
 | 大模型输出目录外的概念、越界数值 | 守门器整条拦下，页面展示被拦内容和原因；合法片段照常使用 | `test_llm_out_of_catalog_is_blocked` |
 | 监控遇到同一数据快照 | 明确记录“没有新数据，名单不变”，不当作新一期结果 | `test_main_chain_on_demo` |
+
+## 2.1 AI 调用总额度（默认 5 美元）
+
+| 场景 | 预期 | 自动化测试 |
+|---|---|---|
+| 连续调用直到额度用完 | 每次按实际花费记账，累计从不超过上限；剩余不够一次最坏情况调用就切断，删除 Key 文件，账本里不出现 Key | `test_actual_cost_is_recorded_and_cut_off_deletes_key` |
+| 剩余额度不够这一次的最坏情况 | 不发请求，当场切断；换一个进程读同一账本仍是切断状态 | `test_refuses_before_calling_when_worst_case_does_not_fit` |
+| 调用超时（不知道是否已计费） | 按预留额度记账，宁可多记 | `test_timeout_is_charged_at_the_reservation` |
+| 接口过载 529 等未计费错误 | 记 0，释放预留 | `test_unbilled_errors_cost_nothing_and_release_the_reservation` |
+| 被拒后换模型重答 | 按 `usage.iterations` 逐段、按各自模型计价；价目表里没有的模型按贵一档记 | `test_fallback_iterations_are_priced_per_model` |
+| 计价与实测对得上 | 首次写缓存约 0.034 美元、命中缓存约 0.012 美元一次 | `test_measured_calls_match_published_prices` |
+| 启动时 Key 在环境变量里 | 搬进数据卷上的 Key 文件（权限 600），进程里只留文件这一份；切断后重启即使环境变量又出现 Key 也会清掉 | `test_prepare_key_moves_env_key_into_file_then_cut_off_keeps_it_gone` |
+| 额度用完后继续解析 | 自动走规则解析，原因写“AI 额度已用完”；`/api/meta` 的 `llm.budget` 显示已切断 | `test_parse_falls_back_to_rules_with_budget_reason` |
 
 ## 3. 极端与合规边界
 
