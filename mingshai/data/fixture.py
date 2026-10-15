@@ -32,11 +32,16 @@ def build_fixture(n: int = 800, seed: int = 20261015) -> tuple[pd.DataFrame, dic
         is_st = i % 53 == 7
         listed_days = int(rng.integers(100, 9000))
         fin = ind in FINANCIALS
-        rev = rng.normal(8, 18)
-        rev_ly = rev - rng.normal(2, 12)
-        rev_q1 = rev - rng.normal(1, 8)
-        np_ = rng.normal(10, 35)
-        np_ly = np_ - rng.normal(3, 25)
+        # 利润表原始金额（元，上半年累计 / 一季度），增速由 derive() 统一计算
+        rev_25 = float(rng.lognormal(21.5, 1.2))
+        g26, g25 = rng.normal(0.08, 0.18), rng.normal(0.06, 0.15)
+        rev_26, rev_24 = rev_25 * (1 + g26), rev_25 / (1 + g25)
+        q1s = rng.uniform(0.42, 0.52)
+        rev_q1_26, rev_q1_25 = rev_26 * q1s * rng.uniform(0.95, 1.05), rev_25 * q1s
+        margin = rng.normal(0.09, 0.08)
+        np_25 = rev_25 * margin
+        np_26 = np_25 * (1 + rng.normal(0.1, 0.35)) if np_25 > 0 else np_25 + abs(np_25) * rng.normal(0.3, 0.6)
+        np_24 = np_25 / (1 + rng.normal(0.05, 0.3)) if rng.random() > 0.08 else -abs(np_25) * 0.4
         gm = np.nan if fin else float(np.clip(rng.normal(28, 12), 2, 92))
         gm_ly = np.nan if fin else gm - rng.normal(0.5, 3)
         roe_raw = rng.normal(4.5, 3.5)
@@ -52,7 +57,8 @@ def build_fixture(n: int = 800, seed: int = 20261015) -> tuple[pd.DataFrame, dic
             "last_close": float(np.round(rng.lognormal(2.6, 0.7), 2)), "price_date": "2026-10-14",
             "pe_ttm": float(pe), "pb_mrq": float(np.round(rng.lognormal(0.6, 0.6), 3)),
             "ps_ttm": float(np.round(rng.lognormal(1.0, 0.8), 3)), "pcf_ttm": float(rng.normal(18, 25)),
-            "rev_yoy": rev, "np_yoy": np_, "rev_yoy_q1": rev_q1, "rev_yoy_ly": rev_ly, "np_yoy_ly": np_ly,
+            "rev_h1_26": rev_26, "rev_h1_25": rev_25, "rev_h1_24": rev_24, "rev_q1_26": rev_q1_26, "rev_q1_25": rev_q1_25,
+            "np_h1_26": np_26, "np_h1_25": np_25, "np_h1_24": np_24, "rpt_h1_26": "2026-08-28",
             "gross_margin": gm, "gm_ly": gm_ly, "net_margin": float(rng.normal(9, 9)),
             "roe_raw": roe_raw, "roe_ly": roe_ly,
             "debt_ratio": debt, "current_ratio": np.nan if fin else float(np.clip(rng.lognormal(0.4, 0.5), 0.2, 15)),
@@ -65,7 +71,7 @@ def build_fixture(n: int = 800, seed: int = 20261015) -> tuple[pd.DataFrame, dic
         })
     df = pd.DataFrame(rows).set_index("thscode")
     # 约 5% 的随机缺失，模拟接口没有返回的字段
-    for col in ("pe_ttm", "rev_yoy", "np_yoy", "vol_60d", "div_yield", "roe_raw"):
+    for col in ("pe_ttm", "rev_h1_26", "np_h1_26", "vol_60d", "div_yield", "roe_raw"):
         df.loc[df.sample(frac=0.05, random_state=len(col)).index, col] = np.nan
     derive(df)
     meta = {
@@ -81,10 +87,28 @@ def build_fixture(n: int = 800, seed: int = 20261015) -> tuple[pd.DataFrame, dic
     return df, meta
 
 
+def _ratio(a: pd.Series, b: pd.Series) -> pd.Series:
+    """a ÷ b − 1（%）；分母 ≤ 0 或缺失时为缺失。"""
+    return pd.Series(np.where(b > 0, (a / b - 1) * 100, np.nan), index=a.index)
+
+
+def _change(a: pd.Series, b: pd.Series) -> pd.Series:
+    """(a − b) ÷ |b|（%）；分母为 0 或缺失时为缺失。用于利润：亏损收窄 / 扭亏记为正增长。"""
+    return pd.Series(np.where((b != 0) & b.notna(), (a - b) / b.abs() * 100, np.nan), index=a.index)
+
+
 def derive(df: pd.DataFrame) -> None:
     """由原始字段派生的指标。真实快照和演示数据共用这一个函数，口径只写一次。"""
-    df["rev_yoy_accel"] = df["rev_yoy"] - df["rev_yoy_q1"]
+    df["rev_yoy"] = _ratio(df["rev_h1_26"], df["rev_h1_25"])
+    df["rev_yoy_ly"] = _ratio(df["rev_h1_25"], df["rev_h1_24"])
+    df["rev_q1_yoy"] = _ratio(df["rev_q1_26"], df["rev_q1_25"])
+    df["rev_q2_26"] = df["rev_h1_26"] - df["rev_q1_26"]
+    df["rev_q2_25"] = df["rev_h1_25"] - df["rev_q1_25"]
+    df["rev_q2_yoy"] = _ratio(df["rev_q2_26"], df["rev_q2_25"])
+    df["rev_yoy_accel"] = df["rev_q2_yoy"] - df["rev_q1_yoy"]
     df["rev_yoy_vs_ly"] = df["rev_yoy"] - df["rev_yoy_ly"]
+    df["np_yoy"] = _change(df["np_h1_26"], df["np_h1_25"])
+    df["np_yoy_ly"] = _change(df["np_h1_25"], df["np_h1_24"])
     df["np_yoy_vs_ly"] = df["np_yoy"] - df["np_yoy_ly"]
     df["gm_delta"] = df["gross_margin"] - df["gm_ly"]
     df["roe_ann"] = df["roe_raw"] * 2

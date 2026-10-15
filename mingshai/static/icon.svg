@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="明筛 应用图标">
+  <title>明筛 · 自然语言选股与策略解释器</title>
+  <!-- 圆角方形底 · navy-700（与固收智询同一套底色） -->
+  <rect x="80" y="80" width="864" height="864" rx="192" fill="#1E2761"/>
+  <!-- 筛子 / 漏斗轮廓 -->
+  <path d="M 220 232 H 804 L 572 540 V 688 H 452 V 540 Z"
+        fill="none" stroke="#F4F6F8" stroke-width="26" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- 三条条件线，越往下越短：条件一层层收窄 -->
+  <path d="M 306 304 H 718" stroke="#F4F6F8" stroke-width="18" stroke-linecap="round"/>
+  <path d="M 360 376 H 664" stroke="#F4F6F8" stroke-width="18" stroke-linecap="round" opacity="0.85"/>
+  <path d="M 414 448 H 610" stroke="#F4F6F8" stroke-width="18" stroke-linecap="round" opacity="0.7"/>
+  <!-- 筛出的结果：冷灰光晕 + 朱红实心点 -->
+  <circle cx="512" cy="792" r="60" fill="#98A1C8" opacity="0.32"/>
+  <circle cx="512" cy="792" r="30" fill="#C8102E"/>
+</svg>

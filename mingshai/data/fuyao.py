@@ -75,10 +75,11 @@ class FuyaoClient:
         with self.ledger.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
-    async def get(self, path: str, params: dict | None = None) -> dict:
-        """返回完整信封（code=0）。失败抛 FuyaoError。"""
+    async def get(self, path: str, params: dict | None = None, attempts: int | None = None) -> dict:
+        """返回完整信封（code=0）。失败抛 FuyaoError。attempts 覆盖默认重试次数。"""
         params = {k: v for k, v in (params or {}).items() if v is not None}
-        for attempt in range(1, self.max_attempts + 1):
+        max_attempts = attempts or self.max_attempts
+        for attempt in range(1, max_attempts + 1):
             async with self.sem:
                 await self._pace()
                 t0 = time.monotonic()
@@ -108,7 +109,7 @@ class FuyaoClient:
             if throttled:
                 self.stats["throttled"] += 1
                 self.min_interval = min(self.min_interval * 1.5, 2.0)
-            if retryable and attempt < self.max_attempts:
+            if retryable and attempt < max_attempts:
                 self.stats["retries"] += 1
                 await asyncio.sleep(min(2 ** attempt, 20) * (0.5 + random.random()))
                 continue
@@ -140,7 +141,13 @@ class FuyaoClient:
         return await self.get("/api/a-share/valuations/snapshot", {"thscodes": ",".join(thscodes)})
 
     async def fin_indicators(self, thscode: str, report: str) -> dict:
-        return await self.get("/api/a-share/financials/indicators", {"thscode": thscode, "report": report})
+        # 某只股票某期没数据时扶摇返回 5003（而非 3002），多试一次就够，不要拖慢全量构建
+        return await self.get("/api/a-share/financials/indicators", {"thscode": thscode, "report": report},
+                              attempts=2)
+
+    async def income_statements(self, thscode: str, limit: int) -> dict:
+        return await self.get("/api/a-share/financials/income-statements",
+                              {"thscode": thscode, "period": "quarterly", "limit": limit}, attempts=2)
 
     async def calendar(self) -> dict:
         return await self.get("/api/a-share/calendar/trading-days")

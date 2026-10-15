@@ -20,14 +20,14 @@ import json
 import os
 import shutil
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
 import numpy as np
 import pandas as pd
 
-from ..registry import REPORT_LAST_YEAR, REPORT_LATEST, REPORT_PREV_Q, REPORTS, UNIVERSES
+from ..registry import FIN_REPORTS, INCOME_LIMIT, REPORT_LAST_YEAR, REPORT_LATEST, REPORTS, UNIVERSES
 from ..store import DATA_DIR, SNAPSHOT_PATH
 from .features import adjusted_returns, event_sanity, price_features
 from .fixture import derive
@@ -38,18 +38,21 @@ LEDGER = DATA_DIR / "ledger.jsonl"
 STATE = DATA_DIR / "build_state.json"
 DUMPS = DATA_DIR / "dumps"
 TZ = "Asia/Shanghai"
-NOT_READY = {3001, 3002, 3004}     # 标的不存在 / 数据未就绪 / 不支持：记为缺失，不重试
+# 某只股票某一期"没有数据"的几种返回：记为缺失（覆盖率里看得到），不终止构建。
+# 实测：代码表里个别北交所代码在财务接口返回 1002 Unknown thscode；未发布的报告期返回 5003。
+MISSING = {1002, 3001, 3002, 3004, 5003}
+FATAL = {2001, 2003}                 # Key 无效 / 无权限：立即终止
+MAX_ERROR_RATE = 0.02                # 其他错误超过 2% 视为系统性故障，终止且不替换旧快照
 
 FIN_FIELDS = {
-    "operating_income_yoy_growth_ratio", "net_profit_yoy_growth_ratio", "sale_gross_margin",
-    "sale_net_interest_ratio", "index_weighted_avg_roe", "index_deduct_weighted_avg_roe",
-    "assets_debt_ratio", "current_ratio", "net_profit_cash_content",
-    "operating_cash_flow_net_divide_income",
+    "sale_gross_margin", "sale_net_interest_ratio", "index_weighted_avg_roe", "index_deduct_weighted_avg_roe",
+    "assets_debt_ratio", "current_ratio", "net_profit_cash_content", "operating_cash_flow_net_divide_income",
 }
+INCOME_FIELDS = ("operating_income", "operating_costs", "net_profit", "parent_holder_net_profit")
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    return datetime.now(UTC).astimezone().isoformat(timespec="seconds")
 
 
 def _ms_to_date(ms) -> pd.Series:
@@ -104,14 +107,14 @@ def _find_url(obj) -> str | None:
     return None
 
 
-async def build(limit: int | None = None, refresh: bool = False, concurrency: int = 6) -> dict:
+async def build(limit: int | None = None, refresh: bool = False, concurrency: int = 6, qps: float = 12.0) -> dict:
     key = load_api_key()
     if not key:
         raise SystemExit("缺少扶摇 API Key：设置 FUYAO_API_KEY 或 FUYAO_API_KEY_FILE")
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     st = State()
     st.save()
-    cli = FuyaoClient(key, ledger=LEDGER, concurrency=concurrency)
+    cli = FuyaoClient(key, ledger=LEDGER, concurrency=concurrency, min_interval=1.0 / max(qps, 0.5))
     work = duckdb.connect(str(WORK))
     try:
         meta = await _build(cli, work, st, limit, refresh)
@@ -177,6 +180,7 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
 
     # 5. 财务指标（断点续跑；日更模式沿用已有结果）
     fin = await _fin_indicators(cli, work, st, codes, refresh)
+    inc = await _income(cli, work, st, codes)
 
     # 6. 行情：10 年日 K + 近 10 日增量 + 除权事件
     st.step("行情数据下载")
@@ -201,6 +205,7 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
         f[f"in_{uid}"] = f.index.isin(members_set)
     f = f.join(valuation[["pe_ttm", "pe_mrq", "pb_mrq", "ps_ttm", "pcf_ttm", "val_request_id"]], how="left")
     f = f.join(fin, how="left")
+    f = f.join(inc, how="left")
     f = f.join(pf, how="left")
     pdate = pd.to_datetime(f["price_date"].fillna(as_of.strftime("%Y-%m-%d")))
     f["listed_days"] = (pdate - pd.to_datetime(f["list_date"], errors="coerce")).dt.days
@@ -219,8 +224,9 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
             "index_members": {k: len(v) for k, v in idx_members.items()},
             "valuation": {"endpoint": "/api/a-share/valuations/snapshot", "timestamp_ms": val_as_of,
                           "as_of": _fmt_ms(val_as_of)},
-            "financials": {"endpoint": "/api/a-share/financials/indicators", "reports": list(REPORTS),
-                           "latest": REPORT_LATEST},
+            "financials": {"endpoint": "/api/a-share/financials/indicators（比率）+ income-statements（增速自算）",
+                           "reports": list(REPORTS), "indicator_reports": list(FIN_REPORTS), "latest": REPORT_LATEST,
+                           "missing": _missing_summary(work)},
             "prices": {"endpoint": "market-dumps daily-k + daily-k-10d + adjustment-factors",
                        "last_date": as_of.strftime("%Y-%m-%d"), "calendar_last_trading_day": cal_last,
                        "event_sanity": sanity},
@@ -273,31 +279,56 @@ def choose_industry(catalog: pd.DataFrame, members: pd.DataFrame) -> tuple[pd.Da
                 "level_chosen": chosen_level, "levels": info, "groups": int(df["industry_code"].nunique())}
 
 
+class _ErrorBudget:
+    """单只股票没数据算缺失；鉴权错误立刻终止；其他错误累计超过 2% 认为是系统性故障。"""
+
+    def __init__(self, what: str):
+        self.what, self.calls, self.errors, self.examples = what, 0, 0, []
+
+    def check(self, code: str, err: Exception) -> bool:
+        """返回 True 表示可以记为缺失；否则累计错误，超预算时抛出。"""
+        self.calls += 1
+        if isinstance(err, FuyaoError):
+            if err.code in FATAL:
+                raise RuntimeError(f"{self.what}：扶摇 Key 无效或无权限（code={err.code}），终止构建") from err
+            if err.code in MISSING:
+                return True
+        self.errors += 1
+        if len(self.examples) < 3:
+            self.examples.append(f"{code}: {err}")
+        if self.calls >= 50 and self.errors / self.calls > MAX_ERROR_RATE:
+            raise RuntimeError(f"{self.what} 错误率 {self.errors}/{self.calls} 超过 {MAX_ERROR_RATE:.0%}，"
+                               f"疑似接口故障，终止构建：{self.examples}")
+        return False
+
+    def ok(self) -> None:
+        self.calls += 1
+
+
 async def _fin_indicators(cli: FuyaoClient, work, st: State, codes: list[str], refresh: bool) -> pd.DataFrame:
     work.execute("""CREATE TABLE IF NOT EXISTS raw_fin (thscode VARCHAR, report VARCHAR, index_id VARCHAR,
                     value DOUBLE, request_id VARCHAR, fetched_at VARCHAR)""")
     work.execute("""CREATE TABLE IF NOT EXISTS raw_fin_status (thscode VARCHAR, report VARCHAR, code INTEGER,
                     message VARCHAR, request_id VARCHAR, fetched_at VARCHAR)""")
-    # 全量和日更都是"只补缺"：已取过的（股票, 报告期）不重复请求。日更时新上市或之前缺的会被补上；
-    # 新服务器没有工作库时等同全量，不会出现"沿用了一个不存在的旧结果"导致财务列全空。
+    # 全量和日更都是"只补缺"：已取过的（股票, 报告期）不重复请求；新服务器没有工作库时等同全量。
     done = set(map(tuple, work.execute("SELECT DISTINCT thscode, report FROM raw_fin_status").fetchall()))
-    todo = [(c, r) for c in codes for r in REPORTS if (c, r) not in done]
-    st.step("财务指标" + ("（日更补缺）" if refresh else ""), done=len(codes) * len(REPORTS) - len(todo),
-            total=len(codes) * len(REPORTS))
-    chunk = 400
+    todo = [(c, r) for c in codes for r in FIN_REPORTS if (c, r) not in done]
+    total = len(codes) * len(FIN_REPORTS)
+    st.step("财务指标" + ("（日更补缺）" if refresh else ""), done=total - len(todo), total=total)
+    budget = _ErrorBudget("财务指标")
+    chunk = 300
     for i in range(0, len(todo), chunk):
         part = todo[i:i + chunk]
         res = await asyncio.gather(*[cli.fin_indicators(c, r) for c, r in part], return_exceptions=True)
         vals, stats = [], []
         for (c, r), x in zip(part, res, strict=True):
             ts = _now()
-            if isinstance(x, FuyaoError):
-                if x.code in NOT_READY:
-                    stats.append((c, r, x.code, x.message[:120], x.request_id, ts))
-                    continue
-                raise RuntimeError(f"财务指标 {c} {r} 失败：{x}")
             if isinstance(x, Exception):
-                raise RuntimeError(f"财务指标 {c} {r} 失败：{x}")
+                if budget.check(c, x):
+                    stats.append((c, r, getattr(x, "code", None), str(getattr(x, "message", x))[:120],
+                                  getattr(x, "request_id", None), ts))
+                continue
+            budget.ok()
             stats.append((c, r, 0, "ok", x["request_id"], ts))
             for ab in (x["data"] or {}).get("abilities", []):
                 for ind in ab.get("indicators", []):
@@ -307,8 +338,9 @@ async def _fin_indicators(cli: FuyaoClient, work, st: State, codes: list[str], r
                                      x["request_id"], ts))
         if vals:
             work.executemany("INSERT INTO raw_fin VALUES (?, ?, ?, ?, ?, ?)", vals)
-        work.executemany("INSERT INTO raw_fin_status VALUES (?, ?, ?, ?, ?, ?)", stats)
-        st.update(done=len(codes) * len(REPORTS) - len(todo) + i + len(part), stats=dict(cli.stats))
+        if stats:
+            work.executemany("INSERT INTO raw_fin_status VALUES (?, ?, ?, ?, ?, ?)", stats)
+        st.update(done=total - len(todo) + i + len(part), stats=dict(cli.stats))
     raw = work.execute("""SELECT thscode, report, index_id, value, request_id FROM raw_fin
                           WHERE thscode IN (SELECT UNNEST(?))""", [codes]).df()
     wide = raw.pivot_table(index="thscode", columns=["report", "index_id"], values="value", aggfunc="last")
@@ -318,12 +350,7 @@ async def _fin_indicators(cli: FuyaoClient, work, st: State, codes: list[str], r
         return wide[key] if key in wide.columns else pd.Series(np.nan, index=wide.index)
 
     out = pd.DataFrame(index=wide.index)
-    L, Q, Y = REPORT_LATEST, REPORT_PREV_Q, REPORT_LAST_YEAR
-    out["rev_yoy"] = col(L, "operating_income_yoy_growth_ratio")
-    out["np_yoy"] = col(L, "net_profit_yoy_growth_ratio")
-    out["rev_yoy_q1"] = col(Q, "operating_income_yoy_growth_ratio")
-    out["rev_yoy_ly"] = col(Y, "operating_income_yoy_growth_ratio")
-    out["np_yoy_ly"] = col(Y, "net_profit_yoy_growth_ratio")
+    L, Y = REPORT_LATEST, REPORT_LAST_YEAR
     out["gross_margin"] = col(L, "sale_gross_margin")
     out["gm_ly"] = col(Y, "sale_gross_margin")
     out["net_margin"] = col(L, "sale_net_interest_ratio")
@@ -335,6 +362,78 @@ async def _fin_indicators(cli: FuyaoClient, work, st: State, codes: list[str], r
     out["ocf_to_rev"] = col(L, "operating_cash_flow_net_divide_income")
     rid = raw[raw["report"] == L].groupby("thscode")["request_id"].first()
     out["fin_request_id"] = rid
+    return out
+
+
+async def _income(cli: FuyaoClient, work, st: State, codes: list[str]) -> pd.DataFrame:
+    """利润表（季度、累计口径）最近 9 期 → 上半年与一季度的营收、归母净利润原始金额与披露日。"""
+    work.execute("""CREATE TABLE IF NOT EXISTS raw_income (thscode VARCHAR, fiscal_year INTEGER, fiscal_period VARCHAR,
+                    report_date_ms BIGINT, period_end_ms BIGINT, operating_income DOUBLE, operating_costs DOUBLE,
+                    net_profit DOUBLE, parent_holder_net_profit DOUBLE, request_id VARCHAR, fetched_at VARCHAR)""")
+    work.execute("""CREATE TABLE IF NOT EXISTS raw_income_status (thscode VARCHAR, code INTEGER, message VARCHAR,
+                    request_id VARCHAR, fetched_at VARCHAR)""")
+    done = {r[0] for r in work.execute("SELECT DISTINCT thscode FROM raw_income_status").fetchall()}
+    todo = [c for c in codes if c not in done]
+    st.step("利润表", done=len(codes) - len(todo), total=len(codes))
+    budget = _ErrorBudget("利润表")
+    chunk = 300
+    for i in range(0, len(todo), chunk):
+        part = todo[i:i + chunk]
+        res = await asyncio.gather(*[cli.income_statements(c, INCOME_LIMIT) for c in part], return_exceptions=True)
+        rows, stats = [], []
+        for c, x in zip(part, res, strict=True):
+            ts = _now()
+            if isinstance(x, Exception):
+                if budget.check(c, x):
+                    stats.append((c, getattr(x, "code", None), str(getattr(x, "message", x))[:120],
+                                  getattr(x, "request_id", None), ts))
+                continue
+            budget.ok()
+            stats.append((c, 0, "ok", x["request_id"], ts))
+            for it in (x["data"] or {}).get("item", []):
+                rows.append((c, it.get("fiscal_year"), it.get("fiscal_period"), it.get("report_date_ms"),
+                             it.get("period_end_ms"), *[_num(it.get(k)) for k in INCOME_FIELDS], x["request_id"], ts))
+        if rows:
+            work.executemany("INSERT INTO raw_income VALUES (?,?,?,?,?,?,?,?,?,?,?)", rows)
+        if stats:
+            work.executemany("INSERT INTO raw_income_status VALUES (?,?,?,?,?)", stats)
+        st.update(done=len(codes) - len(todo) + i + len(part), stats=dict(cli.stats))
+    raw = work.execute("""SELECT * FROM raw_income WHERE thscode IN (SELECT UNNEST(?))""", [codes]).df()
+    raw = raw.drop_duplicates(["thscode", "fiscal_year", "fiscal_period"], keep="last")
+    key = raw["fiscal_year"].astype(str) + raw["fiscal_period"].astype(str)
+    rev = raw.assign(k=key).pivot_table(index="thscode", columns="k", values="operating_income", aggfunc="last")
+    npf = raw.assign(k=key).pivot_table(index="thscode", columns="k", values="parent_holder_net_profit", aggfunc="last")
+    rpt = raw.assign(k=key).pivot_table(index="thscode", columns="k", values="report_date_ms", aggfunc="last")
+
+    def g(t: pd.DataFrame, k: str) -> pd.Series:
+        return t[k] if k in t.columns else pd.Series(np.nan, index=t.index)
+
+    out = pd.DataFrame(index=rev.index.union(npf.index))
+    out["rev_h1_26"], out["rev_h1_25"], out["rev_h1_24"] = g(rev, "2026Q2"), g(rev, "2025Q2"), g(rev, "2024Q2")
+    out["rev_q1_26"], out["rev_q1_25"] = g(rev, "2026Q1"), g(rev, "2025Q1")
+    out["np_h1_26"], out["np_h1_25"], out["np_h1_24"] = g(npf, "2026Q2"), g(npf, "2025Q2"), g(npf, "2024Q2")
+    rd = g(rpt, "2026Q2")
+    out["rpt_h1_26"] = pd.to_datetime(rd, unit="ms", utc=True).dt.tz_convert(TZ).dt.strftime("%Y-%m-%d")
+    out["inc_request_id"] = raw.groupby("thscode")["request_id"].first()
+    return out
+
+
+def _num(v):
+    try:
+        return None if v is None else float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def _missing_summary(work) -> dict:
+    """每类"没数据"的返回码各有多少，写进快照元数据，页面数据状态里能看到。"""
+    out = {}
+    for table, label in (("raw_fin_status", "财务指标"), ("raw_income_status", "利润表")):
+        try:
+            rows = work.execute(f"SELECT code, COUNT(*) FROM {table} WHERE code <> 0 GROUP BY code").fetchall()
+            out[label] = {str(c): n for c, n in rows}
+        except duckdb.CatalogException:
+            out[label] = {}
     return out
 
 
@@ -396,9 +495,10 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=None, help="只取代码表前 N 只（联调用）")
     ap.add_argument("--refresh", action="store_true", help="日更：重取估值和行情，财务指标只补缺")
     ap.add_argument("--concurrency", type=int, default=6)
+    ap.add_argument("--qps", type=float, default=12.0, help="每秒请求上限；遇到限流会自动放慢")
     a = ap.parse_args()
     t0 = time.time()
-    meta = asyncio.run(build(a.limit, a.refresh, a.concurrency))
+    meta = asyncio.run(build(a.limit, a.refresh, a.concurrency, a.qps))
     print(json.dumps({"snapshot_id": meta["snapshot_id"], "universe": meta["universe"],
                       "seconds": round(time.time() - t0), "stats": meta["fetch_stats"]}, ensure_ascii=False))
 

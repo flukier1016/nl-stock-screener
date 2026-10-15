@@ -23,9 +23,13 @@ from dataclasses import dataclass
 
 # ── 报告期（单一信源）────────────────────────────────────────────────
 REPORT_LATEST = "2026-2"      # 2026 中报：截至 2026-10 全部 A 股已披露的最新报告期
-REPORT_PREV_Q = "2026-1"      # 2026 一季报：用来算"增速是否在加快"
+REPORT_PREV_Q = "2026-1"      # 2026 一季报：和中报相减得到二季度单季，用来算"增速是否在加快"
 REPORT_LAST_YEAR = "2025-2"   # 2025 中报：同口径去年同期，用来算同比变化
 REPORTS = (REPORT_LATEST, REPORT_PREV_Q, REPORT_LAST_YEAR)
+# 扶摇财务指标接口的同比增速字段实测全为空（抽查 8 只，三个报告期都是 null），
+# 所以增速一律用利润表原始金额自己算；指标接口只取 ROE、毛利率、负债率等比率
+FIN_REPORTS = (REPORT_LATEST, REPORT_LAST_YEAR)
+INCOME_LIMIT = 9              # 利润表按季度取最近 9 期：2026Q2 往回到 2024Q2
 REPORT_LABELS = {
     "2026-2": "2026 中报", "2026-1": "2026 一季报", "2025-2": "2025 中报",
     "2025-4": "2025 年报", "2026-3": "2026 三季报",
@@ -34,6 +38,7 @@ REPORT_LABELS = {
 FUYAO = "同花顺金融数据 API（扶摇）"
 EP_VALUATION = "GET /api/a-share/valuations/snapshot"
 EP_FIN_IND = "GET /api/a-share/financials/indicators"
+EP_INCOME = "GET /api/a-share/financials/income-statements?period=quarterly"
 EP_DAILY_K = "GET /api/dump/market-dumps/daily-k/download-url（10 年日 K Parquet，未复权）"
 EP_ADJ = "GET /api/dump/market-dumps/adjustment-factors/download-url（除权除息事件）"
 EP_TICKERS = "GET /api/meta/tickers/list?asset_type=a-share"
@@ -98,24 +103,28 @@ METRICS: list[Metric] = [
     Metric("pcf_ttm", "市现率 TTM", "倍", "估值", f"{FUYAO} · {EP_VALUATION}", "pcf_ttm",
            "最新估值快照", "股价 ÷ 最近 12 个月每股经营现金流。", direction="lower", lo=-1e5, hi=1e5,
            caveat="经营现金流为负时为负值。"),
-    # ── 成长（财务指标，报告期累计口径）─────────────────────────────
-    _fin("rev_yoy", "营业收入同比增速", "%", "成长", "operating_income_yoy_growth_ratio",
-         f"{_L}累计营业收入相对去年同期的增长率。"),
-    _fin("np_yoy", "净利润同比增速", "%", "成长", "net_profit_yoy_growth_ratio",
-         f"{_L}累计净利润相对去年同期的增长率。",
-         caveat="基数很小或由亏转盈时增速会非常大，解读时看原值。"),
-    Metric("rev_yoy_accel", "营收增速变化（较一季报）", "pp", "成长", f"{FUYAO} · {EP_FIN_IND}",
-           f"operating_income_yoy_growth_ratio：{_L} − {_Q}", f"{_L} 与 {_Q}",
-           f"{_L}累计营收增速减去{_Q}营收增速。为正说明二季度增长比一季度快。",
+    # ── 成长（利润表原始金额自算；单季 = 累计值相减）──────────────────────
+    Metric("rev_yoy", "营业收入同比增速", "%", "成长", f"{FUYAO} · {EP_INCOME}",
+           "operating_income：2026Q2 累计 ÷ 2025Q2 累计 − 1", f"{_L}（上半年累计）",
+           "今年上半年营业收入相对去年上半年的增长率。", direction="higher", lo=-1e4, hi=1e5,
+           caveat="去年同期营收 ≤ 0 时记为缺失。"),
+    Metric("np_yoy", "归母净利润同比增速", "%", "成长", f"{FUYAO} · {EP_INCOME}",
+           "parent_holder_net_profit：(2026Q2 累计 − 2025Q2 累计) ÷ |2025Q2 累计|", f"{_L}（上半年累计）",
+           "今年上半年归母净利润相对去年上半年的增长率；去年同期亏损时按绝对值做分母，亏损收窄或扭亏记为正增长。",
+           direction="higher", lo=-1e6, hi=1e6,
+           caveat="利润基数很小或由亏转盈时增速会非常大，证据卡同时给出原始金额。"),
+    Metric("rev_yoy_accel", "单季营收增速变化（Q2 较 Q1）", "pp", "成长", f"{FUYAO} · {EP_INCOME}",
+           "二季度单季 = 2026Q2 累计 − 2026Q1；Q2 单季同比 − Q1 同比", "2026 年一、二季度单季",
+           "二季度单季营收同比增速减去一季度营收同比增速。为正说明增长在加快。",
            direction="higher", lo=-1e5, hi=1e5,
-           caveat="用累计口径近似单季变化，季节性强的行业会有偏差。"),
-    Metric("rev_yoy_vs_ly", "营收增速变化（较去年同期）", "pp", "成长", f"{FUYAO} · {EP_FIN_IND}",
-           f"operating_income_yoy_growth_ratio：{_L} − {_Y}", f"{_L} 与 {_Y}",
+           caveat="单季值由累计值相减得到；上年同期单季营收 ≤ 0 时记为缺失。"),
+    Metric("rev_yoy_vs_ly", "营收增速变化（较去年同期）", "pp", "成长", f"{FUYAO} · {EP_INCOME}",
+           "今年上半年营收同比 − 去年上半年营收同比（需 2024Q2）", f"{_L} 与 {_Y}",
            "今年中报营收增速减去去年中报营收增速。为正说明增长比去年快。",
            direction="higher", lo=-1e5, hi=1e5),
-    Metric("np_yoy_vs_ly", "净利润增速变化（较去年同期）", "pp", "成长", f"{FUYAO} · {EP_FIN_IND}",
-           f"net_profit_yoy_growth_ratio：{_L} − {_Y}", f"{_L} 与 {_Y}",
-           "今年中报净利润增速减去去年中报净利润增速。", direction="higher", lo=-1e6, hi=1e6,
+    Metric("np_yoy_vs_ly", "利润增速变化（较去年同期）", "pp", "成长", f"{FUYAO} · {EP_INCOME}",
+           "今年上半年归母净利润同比 − 去年上半年同比", f"{_L} 与 {_Y}",
+           "今年中报归母净利润增速减去去年中报增速。", direction="higher", lo=-1e7, hi=1e7,
            caveat="利润基数小时波动极大，建议与收入条件同用。"),
     # ── 盈利 ────────────────────────────────────────────────────
     _fin("gross_margin", "销售毛利率", "%", "盈利", "sale_gross_margin",
@@ -259,11 +268,10 @@ CONCEPTS: list[Concept] = [
             Option("margin_up", "盈利能力在变强", "毛利率和 ROE 都比去年同期高。",
                    (Cond("gm_delta", ">", 0), Cond("roe_delta", ">", 0)),
                    note="金融企业没有毛利率，会落入'数据缺失'。"),
-            Option("accel", "增长在加速", "营收同比为正，且二季度增长快于一季度。",
+            Option("accel", "增长在加速", "上半年营收同比为正，且二季度单季增速快于一季度。",
                    (Cond("rev_yoy", ">", 0), Cond("rev_yoy_accel", ">", 0))),
         ),
-        unavailable=(("单季度环比改善", "扶摇财务指标为报告期累计口径，没有单季拆分字段；"
-                                       "这里用累计增速之差近似。"),),
+        unavailable=(("用三季报判断", "三季报正在陆续披露（截至快照只有少数公司发布），统一用中报，避免同一条件比较不同时间段。"),),
     ),
     Concept(
         "val_fair", "估值合理",
@@ -458,6 +466,7 @@ def catalog() -> dict:
     return {
         "report_latest": REPORT_LATEST,
         "reports": {r: REPORT_LABELS[r] for r in REPORTS},
+        "fin_reports": list(FIN_REPORTS),
         "metrics": [m.as_dict() for m in METRICS],
         "concepts": [c.as_dict() for c in CONCEPTS],
         "universes": [u.as_dict() for u in UNIVERSES],

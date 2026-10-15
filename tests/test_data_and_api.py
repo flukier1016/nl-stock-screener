@@ -216,3 +216,26 @@ def test_llm_failure_falls_back_to_rules(monkeypatch):
     monkeypatch.setattr(llm, "complete_json", boom)
     r = parse_llm.parse("经营改善、估值合理", {})
     assert r.mode == "rules_fallback" and "规则解析" in r.fallback_reason and len(r.segments) == 2
+
+
+# ── 增速由利润表原始金额自算（扶摇财务指标的同比字段实测为空）──────────────
+def test_growth_from_income_statement_amounts():
+    from mingshai.data.fixture import derive
+    df = pd.DataFrame({
+        "rev_h1_26": [110.0, 50.0], "rev_h1_25": [100.0, 0.0], "rev_h1_24": [80.0, 10.0],
+        "rev_q1_26": [50.0, 20.0], "rev_q1_25": [48.0, 0.0],
+        "np_h1_26": [5.0, 1.0], "np_h1_25": [-10.0, 0.0], "np_h1_24": [-20.0, 1.0],
+        "gross_margin": [30.0, np.nan], "gm_ly": [28.0, np.nan], "roe_raw": [6.0, 1.0], "roe_ly": [5.0, 1.0],
+    })
+    derive(df)
+    a = df.iloc[0]
+    assert a["rev_yoy"] == pytest.approx(10.0)
+    assert a["rev_q1_yoy"] == pytest.approx((50 / 48 - 1) * 100)
+    assert a["rev_q2_yoy"] == pytest.approx((60 / 52 - 1) * 100)
+    assert a["rev_yoy_accel"] == pytest.approx((60 / 52 - 50 / 48) * 100)
+    assert a["rev_yoy_vs_ly"] == pytest.approx(10.0 - 25.0)
+    assert a["np_yoy"] == pytest.approx(150.0)            # 由亏转盈：(5 − (−10)) ÷ |−10|
+    assert a["np_yoy_ly"] == pytest.approx(50.0)          # 亏损收窄：(−10 − (−20)) ÷ |−20|
+    assert a["roe_ann"] == pytest.approx(12.0) and a["gm_delta"] == pytest.approx(2.0)
+    b = df.iloc[1]
+    assert np.isnan(b["rev_yoy"]) and np.isnan(b["rev_yoy_accel"]) and np.isnan(b["np_yoy"])  # 分母为 0 记缺失

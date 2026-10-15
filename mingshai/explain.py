@@ -45,12 +45,16 @@ def _raw_trace(ds: Dataset, code: str, metric: str) -> str:
     r = ds.frame.loc[code]
     L, Q, Y = (REPORT_LABELS[x] for x in (REPORT_LATEST, REPORT_PREV_Q, REPORT_LAST_YEAR))
     g = lambda k: fmt(r.get(k), None, unit=False)  # noqa: E731
+    yi = lambda k: "—" if pd.isna(r.get(k)) else f"{r.get(k) / 1e8:,.2f} 亿元"  # noqa: E731
     traces = {
+        "rev_yoy": f"2026 上半年营收 {yi('rev_h1_26')} ÷ 2025 上半年 {yi('rev_h1_25')} − 1",
+        "np_yoy": f"2026 上半年归母净利润 {yi('np_h1_26')}，2025 上半年 {yi('np_h1_25')}；(今年 − 去年) ÷ |去年|",
+        "rev_yoy_accel": (f"二季度单季营收 {yi('rev_q2_26')}（上年 {yi('rev_q2_25')}，同比 {g('rev_q2_yoy')}%）；"
+                          f"一季度 {yi('rev_q1_26')}（上年 {yi('rev_q1_25')}，同比 {g('rev_q1_yoy')}%）"),
+        "rev_yoy_vs_ly": f"今年上半年营收同比 {g('rev_yoy')}% − 去年上半年同比 {g('rev_yoy_ly')}%（2024 上半年营收 {yi('rev_h1_24')}）",
+        "np_yoy_vs_ly": f"今年上半年归母净利润同比 {g('np_yoy')}% − 去年上半年同比 {g('np_yoy_ly')}%（2024 上半年 {yi('np_h1_24')}）",
         "roe_ann": f"{L}加权 ROE 原值 {g('roe_raw')}%（半年、未年化）× 2",
         "roe_delta": f"{L} ROE {g('roe_raw')}% − {Y} ROE {g('roe_ly')}%",
-        "rev_yoy_vs_ly": f"{L}营收增速 {g('rev_yoy')}% − {Y}营收增速 {g('rev_yoy_ly')}%",
-        "rev_yoy_accel": f"{L}营收增速 {g('rev_yoy')}% − {Q}营收增速 {g('rev_yoy_q1')}%",
-        "np_yoy_vs_ly": f"{L}净利润增速 {g('np_yoy')}% − {Y}净利润增速 {g('np_yoy_ly')}%",
         "gm_delta": f"{L}毛利率 {g('gross_margin')}% − {Y}毛利率 {g('gm_ly')}%",
         "div_yield": f"近 365 天每股现金分红合计 {g('div_sum_12m')} 元 ÷ 收盘价 {g('last_close')} 元",
     }
@@ -96,7 +100,10 @@ def evidence(ds: Dataset, result: dict, s: Strategy, code: str) -> dict:
         if m.category == "估值":
             source["as_of"] = meta.get("valuation", {}).get("as_of")
             source["request_id"] = _s(r.get("val_request_id"))
-        elif m.category in ("成长", "盈利", "偿债", "现金流"):
+        elif m.category == "成长":
+            source["request_id"] = _s(r.get("inc_request_id"))
+            source["as_of"] = f"2026 中报披露日 {_s(r.get('rpt_h1_26')) or '未知'}"
+        elif m.category in ("盈利", "偿债", "现金流"):
             source["request_id"] = _s(r.get("fin_request_id"))
         elif m.category in ("行情", "流动性", "分红"):
             source["as_of"] = _s(r.get("price_date")) or meta.get("prices", {}).get("last_date")
