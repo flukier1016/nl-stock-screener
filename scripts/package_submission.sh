@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT_DIR="${1:-$HOME/Desktop}"
 STAMP="$(date +%Y%m%d-%H%M)"
-NAME="明筛_自然语言选股与策略解释器_提交材料_${STAMP}"
+NAME="所以然_一句话选股_提交材料_${STAMP}"
 WORK="$(mktemp -d)/${NAME}"
 mkdir -p "$WORK/docs" "$WORK/eval" "$WORK/screenshots"
 

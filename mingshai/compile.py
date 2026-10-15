@@ -79,18 +79,15 @@ def compile_strategy(query: str, segments: list[Segment], choices: dict[int, str
         if len(ids) > 1:
             names = "、".join(UNIVERSES_BY_ID[u].label for u in ids)
             notes.append({"severity": "conflict", "condition_ids": [],
-                          "message": f"同时提到了 {names}，它们的成分股互不重叠。"
-                                     f"先按 {UNIVERSES_BY_ID[ids[0]].label} 处理，请在股票池里确认。"})
+                          "message": f"同时提到了 {names}，两者没有重叠，先按 {UNIVERSES_BY_ID[ids[0]].label} 处理。"})
 
     u = UNIVERSES_BY_ID[universe.base]
     assumptions = [
         f"股票池：{u.label}" + (f"（{u.note}）" if u.note and universe.base != "all_a" else ""),
-        "默认剔除 ST、*ST 和上市不满 365 天的次新股，可在股票池设置里改。",
-        f"财务指标统一用 {REPORT_LABELS[REPORT_LATEST]}：三季报正在陆续披露，"
-        "混用不同报告期会让同一条件比较的不是同一段时间。",
+        "默认剔除 ST 和上市不满一年的新股，可在下方修改。",
+        f"财务数据统一用 {REPORT_LABELS[REPORT_LATEST]}（三季报还在陆续发布）。",
     ]
     if any(c.basis != "absolute" for c in conds):
-        assumptions.append("“行业中位数”按同花顺行业分组，只统计该指标有效（估值类为正值）的非 ST 公司，"
-                           "可比公司不足 5 家时记为数据缺失。")
+        assumptions.append("“行业中位数”按同花顺行业计算，可比公司不足 5 家时记为缺失。")
     strategy = Strategy(name=query[:40], query=query, universe=universe, conditions=conds)
     return strategy, assumptions, notes

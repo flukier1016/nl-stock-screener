@@ -63,9 +63,9 @@ def check(ds: Dataset, s: Strategy) -> list[dict]:
         if lo > hi or (lo == hi and not (lo_inc and hi_inc)):
             out.append({
                 "severity": "conflict", "condition_ids": [c.id for c in cs],
-                "message": f"{METRICS_BY_ID[metric].name} 的几条要求没有交集："
+                "message": f"{METRICS_BY_ID[metric].name} 的要求互相矛盾（"
                            + "；".join(describe(c.metric, c.op, c.value) for c in cs)
-                           + "。同时满足的股票必然是 0 只，请删掉或改一条。",
+                           + "），结果必然是 0 只。",
             })
 
     # 2. 金融行业口径不适用
@@ -75,8 +75,7 @@ def check(ds: Dataset, s: Strategy) -> list[dict]:
     if bad and fin_share >= 0.5:
         out.append({
             "severity": "applicability", "condition_ids": [c.id for c in bad],
-            "message": "当前股票池以银行、保险、券商为主，资产负债率、流动比率、毛利率对它们不适用"
-                       "（银行负债率普遍在 90% 左右，也没有毛利率）。建议改用市净率、股息率、ROE。",
+            "message": "银行、保险、券商的负债率天然很高，也没有毛利率，这些条件对它们不适用。可改用市净率、股息率、ROE。",
         })
 
     # 3. 概念之间的张力：用真实数据算重叠
@@ -91,8 +90,8 @@ def check(ds: Dataset, s: Strategy) -> list[dict]:
             pb = _all_pass(evals, concepts[b], idx)
             out.append({
                 "severity": "tension", "condition_ids": concepts[a] + concepts[b],
-                "message": f"{msg} 当前股票池里满足“{CONCEPTS_BY_ID[a].label}”的 {int(pa.sum())} 只，"
-                           f"满足“{CONCEPTS_BY_ID[b].label}”的 {int(pb.sum())} 只，两者同时满足的 {int((pa & pb).sum())} 只。",
+                "message": f"{msg}满足“{CONCEPTS_BY_ID[a].label}”{int(pa.sum())} 只，"
+                           f"“{CONCEPTS_BY_ID[b].label}”{int(pb.sum())} 只，同时满足 {int((pa & pb).sum())} 只。",
                 "detail": {"a": int(pa.sum()), "b": int(pb.sum()), "both": int((pa & pb).sum())},
             })
 
@@ -103,8 +102,9 @@ def check(ds: Dataset, s: Strategy) -> list[dict]:
         if len(idx) and cov < COVERAGE_WARN:
             out.append({
                 "severity": "coverage", "condition_ids": [c.id],
-                "message": f"“{describe(c.metric, c.op, c.value, c.basis)}”在当前股票池有 {1 - cov:.0%} 的公司缺数据"
-                           f"（{int((e.status == 'missing').sum())}/{len(idx)}），这些公司会进入“数据缺失”组，不算通过。",
+                "message": (f"“{describe(c.metric, c.op, c.value, c.basis)}”有 {1 - cov:.0%} 的公司缺数据"
+                            + ("或所在行业可比公司不足 5 家" if c.basis == "industry_median" else "")
+                            + "，它们会单独列为“数据缺失”。"),
                 "detail": {"coverage": round(cov, 4)},
             })
     return out

@@ -235,7 +235,7 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
         "notes": [],
     }
     if cal_last and cal_last > as_of.strftime("%Y-%m-%d"):
-        meta["notes"].append(f"行情数据截至 {as_of:%Y-%m-%d}，晚于它的交易日 {cal_last} 尚未进入导出文件。")
+        meta["notes"].append(f"行情更新到 {as_of:%Y-%m-%d} 收盘，{cal_last} 的行情还没发布。")
     _write_snapshot(f.reset_index(), meta)
     return meta
 
@@ -491,7 +491,7 @@ def _write_snapshot(features: pd.DataFrame, meta: dict) -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="从扶摇接口构建明筛数据快照")
+    ap = argparse.ArgumentParser(description="从扶摇接口构建所以然数据快照")
     ap.add_argument("--limit", type=int, default=None, help="只取代码表前 N 只（联调用）")
     ap.add_argument("--refresh", action="store_true", help="日更：重取估值和行情，财务指标只补缺")
     ap.add_argument("--concurrency", type=int, default=6)

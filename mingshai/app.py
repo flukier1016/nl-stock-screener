@@ -1,4 +1,4 @@
-"""明筛 Web 服务（FastAPI）。
+"""所以然 Web 服务（FastAPI）。
 
 主链路：/api/parse（一句话 → 片段 + 澄清选项 + 默认条件）→ /api/compile（用户改选项）→
 /api/check（守门 + 冲突）→ /api/screen（确定性筛选 + 敏感度）→ /api/evidence（单股证据卡）。
@@ -38,7 +38,7 @@ async def lifespan(_app):
     yield
 
 
-app = FastAPI(title="明筛 · 自然语言选股与策略解释器", version=VERSION, lifespan=lifespan)
+app = FastAPI(title="所以然 · 一句话选股", version=VERSION, lifespan=lifespan)
 app.add_middleware(GZipMiddleware, minimum_size=2048)
 _cache: OrderedDict[str, tuple[Strategy, dict]] = OrderedDict()
 _build_lock = threading.Lock()
@@ -178,8 +178,16 @@ def api_screen(body: StrategyIn, request: Request):
         "counts": res["counts"], "funnel": res["funnel"], "impact": res["impact"],
         "fail_distribution": res["fail_distribution"], "rows": rows,
         "summary": explain.summary(res, s), "relax": conflicts.relax_suggestions(res, s) if res["counts"]["passed"] < 5 else [],
-        "conflicts": hints, "data_sources": ds.meta.get("sources", {}), "data_notes": ds.meta.get("notes", []),
+        "conflicts": hints, "data_sources": ds.meta.get("sources", {}), "data_notes": _data_notes(ds),
     }
+
+
+def _data_notes(ds: Dataset) -> list[str]:
+    p = ds.meta.get("sources", {}).get("prices", {})
+    last, cal = p.get("last_date"), p.get("calendar_last_trading_day")
+    if last and cal and cal > last:
+        return [f"行情更新到 {last} 收盘，{cal} 的行情还没发布。"]
+    return [n for n in ds.meta.get("notes", []) if "行情数据截至" not in n]
 
 
 class EvidenceIn(BaseModel):

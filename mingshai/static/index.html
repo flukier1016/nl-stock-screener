@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>明筛 · 自然语言选股与策略解释器</title>
-<meta name="description" content="把模糊的选股想法变成看得见、改得动、查得到出处的数据条件。大模型只翻译，确定性引擎出结果，数据来自同花顺金融数据 API（扶摇）。">
+<title>所以然 · 一句话选股</title>
+<meta name="description" content="一句话选股，不只给名单，也讲清为什么。AI 只把话翻译成条件，程序用同花顺金融数据（扶摇）逐条筛选，每个数字都有出处。">
 <meta name="theme-color" content="#1E2761">
 <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
 <link rel="apple-touch-icon" href="/static/icon.svg">
@@ -20,11 +20,12 @@
   <div class="brand">
     <img src="/static/icon.svg" alt="">
     <div>
-      <div class="brand-name">明筛</div>
-      <div class="brand-sub">每个条件看得见 · 每个数字有出处</div>
+      <div class="brand-name">所以然</div>
+      <div class="brand-sub">不只给名单，也讲清为什么</div>
     </div>
   </div>
   <div class="top-status" id="topStatus"></div>
+  <div id="themeBox"></div>
 </header>
 <div id="banner"></div>
 <main class="wrap">
@@ -35,8 +36,8 @@
   <section class="card" id="stepSaved"></section>
 </main>
 <footer class="foot">
-  <p><b>合规声明</b>　明筛只按你设定的条件筛选并解释公开数据，不预测涨跌、不承诺收益、不构成任何买卖建议。历史数据和当期财务指标不代表未来表现。</p>
-  <p><b>数据与方法</b>　数据来自同花顺金融数据 API（扶摇）。筛选和所有数字由确定性引擎计算；大模型只负责把自然语言翻译成条件，以及在数字守门器约束下写白话解读。<span id="footVersion"></span></p>
+  <p><b>合规</b>　只按你的条件筛选和解释数据，不预测涨跌，不构成投资建议。</p>
+  <p><b>数据</b>　同花顺金融数据 API（扶摇）。数字全部由程序计算，AI 只负责理解你的话。<span id="footVersion"></span></p>
 </footer>
 <aside class="drawer" id="drawer" aria-hidden="true"><div class="drawer-inner" id="drawerInner"></div></aside>
 <div class="scrim" id="scrim"></div>

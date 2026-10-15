@@ -1,4 +1,4 @@
-/* 明筛前端：无构建步骤的原生 JS。所有数字来自后端确定性引擎，前端只负责展示和收集用户的修改。 */
+/* 所以然前端：无构建步骤的原生 JS。所有数字来自后端确定性引擎，前端只负责展示和收集用户的修改。 */
 "use strict";
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -53,10 +53,10 @@ const EXAMPLES = [
 const CAT = { passed: "入选", near_miss: "差一点", excluded: "被排除", missing: "数据缺失" };
 const CAT_CLS = { passed: "pass", near_miss: "near", excluded: "fail", missing: "miss" };
 const CAT_HELP = {
-  passed: "满足你设定的全部条件。默认按代码排序，不代表优劣；点表头可按任一条件排序。",
-  near_miss: "只差一个条件，且差距不超过阈值的 20%（阈值为 0 时按该指标四分位距的 1/4 计）。适合看看条件是不是定得太死。",
-  excluded: "至少有一个条件不满足，红色数字就是卡住它的条件。点一行看完整的排除依据。",
-  missing: "有数据的条件都满足，但至少一个条件缺数据，所以无法判定。缺失不按通过处理。",
+  passed: "满足全部条件。按代码排序，不代表推荐。",
+  near_miss: "只差一个条件，且差距在 20% 以内。",
+  excluded: "至少一个条件不满足，红色数字就是卡住它的那条。",
+  missing: "缺数据，无法判定，所以不算通过。",
 };
 const SEV = { conflict: ["冲突", "alert"], applicability: ["口径不适用", "alert"], tension: ["张力", "info"], coverage: ["缺数据较多", "info"], error: ["错误", "alert"] };
 
@@ -109,8 +109,8 @@ function currentTheme() {
   return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 (function initTheme() { try { const t = localStorage.getItem("ms_theme"); if (t) document.documentElement.dataset.theme = t; } catch { /* 隐私模式 */ } })();
-function toggleTheme() {
-  const next = currentTheme() === "dark" ? "light" : "dark";
+function toggleTheme(next) {
+  next = next || (currentTheme() === "dark" ? "light" : "dark");
   document.documentElement.dataset.theme = next;
   try { localStorage.setItem("ms_theme", next); } catch { /* 隐私模式 */ }
   renderTop();
@@ -124,33 +124,33 @@ function renderTop() {
   const llm = m.llm; const chips = [];
   if (snap) {
     chips.push(`<span class="chip click" data-act="data-panel" title="查看数据状态与覆盖率"><span class="dot ${snap.mode === "demo" ? "warn" : "ok"}"></span>${snap.mode === "demo" ? "演示数据" : `扶摇快照 <span class="mono">${esc(snap.snapshot_id)}</span>`}</span>`);
-    if (src.prices?.last_date) chips.push(`<span class="chip" title="日 K 行情截止日">${icon("clock", "sm")}行情 <span class="mono">${esc(src.prices.last_date)}</span></span>`);
-    if (src.valuation?.as_of) chips.push(`<span class="chip" title="估值快照时点">${icon("pie", "sm")}估值 <span class="mono">${esc(src.valuation.as_of)}</span></span>`);
-    chips.push(`<span class="chip" title="财务口径">${icon("book", "sm")}财务 2026 中报</span>`);
+    if (src.prices?.last_date) chips.push(`<span class="chip opt-chip" title="日 K 行情截止日">${icon("clock", "sm")}行情 <span class="mono">${esc(src.prices.last_date)}</span></span>`);
+    if (src.valuation?.as_of) chips.push(`<span class="chip opt-chip" title="估值快照时点">${icon("pie", "sm")}估值 <span class="mono">${esc(src.valuation.as_of)}</span></span>`);
+    chips.push(`<span class="chip opt-chip" title="财务口径">${icon("book", "sm")}财务 2026 中报</span>`);
   } else {
     chips.push(`<span class="chip click" data-act="data-panel"><span class="dot bad"></span>真实数据未就绪</span>`);
   }
-  chips.push(`<span class="chip" title="意图解析方式">${icon("sparkles", "sm")}${llm.available ? "AI 解析 · <span class='mono'>" + esc(llm.model || llm.provider) + "</span>" : "规则解析（AI 未配置）"}</span>`);
+  chips.push(`<span class="chip" title="意图解析方式">${icon("sparkles", "sm")}${llm.available ? "AI 解析" : "规则解析"}</span>`);
   chips.push(`<a class="toplink" href="${REPO}" target="_blank" rel="noopener">${icon("github", "sm")}源码</a>`);
   const dark = currentTheme() === "dark";
-  chips.push(`<button class="theme-btn" data-act="theme" title="${dark ? "切换到浅色" : "切换到深色"}">${icon(dark ? "sun" : "moon", "sm")}</button>`);
+  $("#themeBox").innerHTML = `<span class="theme-seg" role="group" aria-label="显示模式"><button class="${dark ? "" : "on"}" data-act="theme" data-theme="light">${icon("sun", "sm")}日间</button><button class="${dark ? "on" : ""}" data-act="theme" data-theme="dark">${icon("moon", "sm")}夜间</button></span>`;
   el.innerHTML = chips.join("");
   $("#footVersion").textContent = ` 版本 ${m.version}。`;
   const b = $("#banner");
   if (snap?.mode === "demo") {
-    b.innerHTML = `<div class="bar demo">${icon("alert")}<b>演示数据</b>当前用的是合成数据（股票名带“演示”），只用来体验流程，数字不代表任何真实公司。<button class="btn tiny" data-act="go-live">切回真实数据</button></div>`;
+    b.innerHTML = `<div class="bar demo">${icon("alert")}<b>演示数据</b>股票名带“演示”，数字不是真实公司。<button class="btn tiny" data-act="go-live">切回真实数据</button></div>`;
   } else if (!m.data_ready) {
     const bs = m.build; const prog = bs && bs.total ? `（${bs.step || ""} ${bs.done || 0}/${bs.total}）` : bs?.step ? `（${bs.step}）` : "";
-    b.innerHTML = `<div class="bar down">${icon("database")}<b>真实数据快照尚未就绪</b>${esc(m.load_error || "")}${bs?.status === "running" ? "，正在从扶摇构建" + esc(prog) : bs?.status === "failed" ? "，上次构建失败：" + esc(bs.error || "") : ""}。在此之前不会给出任何筛选结论。<button class="btn tiny" data-act="go-demo">先用演示数据体验</button></div>`;
+    b.innerHTML = `<div class="bar down">${icon("database")}<b>真实数据还在准备</b>${bs?.status === "running" ? "正在从扶摇取数" + esc(prog) + "，" : bs?.status === "failed" ? "上次取数失败：" + esc(bs.error || "") + "。" : ""}准备好之前不给任何结论。<button class="btn tiny" data-act="go-demo">先用演示数据看看</button></div>`;
   } else b.innerHTML = "";
 }
 
 /* ── 第 1 步：输入 ──────────────────────────────────────── */
 function renderInput() {
   $("#stepInput").innerHTML = `
-    <span class="hero-kicker">${icon("funnel", "sm")}自然语言选股 · 策略解释器</span>
-    <h1>一句话说出选股想法，<em>每个条件都看得见</em></h1>
-    <p class="lead">模糊一点也没关系。下一步会请你确认每个词用哪种口径，再用同花顺金融数据（扶摇）的真实数据逐条筛选，告诉你每只股票为什么入选、为什么被排除、条件变了会怎样。</p>
+    <span class="hero-kicker">${icon("funnel", "sm")}一句话选股</span>
+    <h1>不只给名单，<em>也讲清为什么</em></h1>
+    <p class="lead">说一句模糊的想法，先确认每个词的意思，再用同花顺真实数据逐条筛选。</p>
     <div class="ask">
       ${icon("search", "lg")}
       <textarea id="q" maxlength="300" rows="1" placeholder="例如：经营改善、估值合理、走势相对稳定">${esc(S.query)}</textarea>
@@ -158,9 +158,9 @@ function renderInput() {
     </div>
     <div class="examples"><span class="muted small">试试：</span>${EXAMPLES.map((e, i) => `<button class="ex ${i === EXAMPLES.length - 1 ? "warn" : ""}" data-act="example" data-q="${esc(e)}">${i === EXAMPLES.length - 1 ? icon("shield", "sm") : ""}${esc(e)}</button>`).join("")}</div>
     <div class="principle">
-      <div><span class="pi a">${icon("sparkles", "lg")}</span><div><b>AI 只翻译</b><span>把你的话映射到口径字典里的条件，越界输出被守门器拦下</span></div></div>
-      <div><span class="pi b">${icon("target", "lg")}</span><div><b>引擎出结果</b><span>筛选、计数、敏感度全由确定性代码完成，同样输入得到同样结果</span></div></div>
-      <div><span class="pi c">${icon("database", "lg")}</span><div><b>数字有出处</b><span>每个值都追到扶摇接口、字段、报告期、时点和 request_id</span></div></div>
+      <div><span class="pi a">${icon("sparkles", "lg")}</span><div><b>AI 只翻译</b><span>把你的话变成条件，不碰数字</span></div></div>
+      <div><span class="pi b">${icon("target", "lg")}</span><div><b>程序出结果</b><span>同样的条件，永远同样的结果</span></div></div>
+      <div><span class="pi c">${icon("database", "lg")}</span><div><b>数字有出处</b><span>每个数都能查到来源和时点</span></div></div>
     </div>`;
 }
 
@@ -193,13 +193,13 @@ function renderUnderstand(r) {
   const paraphrase = (r?.assumptions || S.assumptions).filter((a) => a.startsWith("AI 复述"));
   const pending = S.assumptions.filter((a) => a.startsWith("待确认"));
   el.innerHTML = `
-    <div class="step-h"><span class="step-n">2</span><h2>确认我理解得对不对</h2><span class="sub">每个模糊词都有几种可执行的口径，默认选了推荐项，可以改</span><span class="right">${modeBadge}</span></div>
+    <div class="step-h"><span class="step-n">2</span><h2>确认理解</h2><span class="sub">每个词选一种口径，默认已选推荐</span><span class="right">${modeBadge}</span></div>
     ${paraphrase.map((a) => `<div class="paraphrase">${icon("message")}<div>${esc(a)}${pending.length ? `<div class="small muted" style="margin-top:4px">${pending.map(esc).join("　")}</div>` : ""}</div></div>`).join("")}
     ${refused.length ? notice("refused", "shield", "已拒绝", `${refused.map((s) => `“${esc(s.text)}”（${esc(s.reason)}）`).join("；")}。${esc(r?.refuse_hint || "")}`) : ""}
-    ${r?.only_refused ? notice("unsup", "info", "", "这句话里没有可以转成数据条件的部分。可以换成“近 60 日涨幅”“股息率”“估值低于行业中位数”这类可验证的说法。") : ""}
+    ${r?.only_refused ? notice("unsup", "info", "", "没有能转成数据条件的部分。试试“股息率 3% 以上”“近 60 日涨幅”这类说法。") : ""}
     <div class="segs">${S.segments.map((s, i) => segCard(s, i)).join("") || `<div class="empty">没有识别出可执行的片段</div>`}</div>
-    ${blocked.length ? `<details class="fold"><summary>${icon("shield", "sm")}守门器拦下了 AI 的 ${blocked.length} 条输出（点开看原因）</summary><ul class="assume">${blocked.map((b) => `<li><code>${esc(JSON.stringify(b.segment).slice(0, 160))}</code> → ${esc(b.reason)}</li>`).join("")}</ul></details>` : ""}
-    ${p.rules_shadow ? `<details class="fold"><summary>对照：同一句话的规则解析结果（用于核对 AI）</summary><ul class="assume">${p.rules_shadow.map((s) => `<li>${esc(s.text)} → ${esc(segLabel(s))}</li>`).join("") || "<li>规则没有识别出片段</li>"}</ul></details>` : ""}
+    ${blocked.length ? `<details class="fold"><summary>${icon("shield", "sm")}拦下 AI 的 ${blocked.length} 条越界输出</summary><ul class="assume">${blocked.map((b) => `<li><code>${esc(JSON.stringify(b.segment).slice(0, 160))}</code> → ${esc(b.reason)}</li>`).join("")}</ul></details>` : ""}
+    ${p.rules_shadow ? `<details class="fold"><summary>对照：规则解析结果</summary><ul class="assume">${p.rules_shadow.map((s) => `<li>${esc(s.text)} → ${esc(segLabel(s))}</li>`).join("") || "<li>规则没有识别出片段</li>"}</ul></details>` : ""}
     <details class="fold" open><summary>默认假设</summary><ul class="assume">${S.assumptions.filter((a) => !a.startsWith("AI 复述") && !a.startsWith("待确认")).map((a) => `<li>${esc(a)}</li>`).join("")}</ul></details>`;
 }
 
@@ -217,8 +217,8 @@ function segCard(s, i) {
   const by = s.by === "llm" ? `<span class="badge ai">AI</span>` : `<span class="badge rule">规则</span>`;
   const skip = S.choices[i] === SKIP;
   if (s.kind === "refused") return "";
-  if (s.kind === "unsupported") return `<div class="seg"><div class="seg-head"><span class="quote">${esc(s.text)}</span><span class="arrow">${icon("arrow", "sm")}</span><span class="badge miss">无法转为数据条件</span>${by}</div><div class="small muted">${esc(s.reason)}</div></div>`;
-  const head = `<div class="seg-head"><span class="quote">${esc(s.text)}</span><span class="arrow">${icon("arrow", "sm")}</span><b>${esc(segLabel(s))}</b>${by}<span style="flex:1"></span><label class="small muted"><input type="checkbox" data-act="skip" data-i="${i}" ${skip ? "checked" : ""}> 不用这一条</label></div>`;
+  if (s.kind === "unsupported") return `<div class="seg"><div class="seg-head"><span class="quote">${esc(s.text)}</span><span class="arrow">${icon("arrow", "sm")}</span><span class="badge miss">没有对应数据</span>${by}</div><div class="small muted">${esc(s.reason)}</div></div>`;
+  const head = `<div class="seg-head"><span class="quote">${esc(s.text)}</span><span class="arrow">${icon("arrow", "sm")}</span><b>${esc(segLabel(s))}</b>${by}<span style="flex:1"></span><label class="small muted"><input type="checkbox" data-act="skip" data-i="${i}" ${skip ? "checked" : ""}> 不用</label></div>`;
   if (s.kind !== "concept") return `<div class="seg ${skip ? "skip" : ""}">${head}${s.reason ? `<div class="small muted">${esc(s.reason)}</div>` : ""}</div>`;
   const c = concept(s.concept_id); const chosen = S.choices[i] && S.choices[i] !== SKIP ? S.choices[i] : s.option_id;
   const opts = c.options.map((o) => `
@@ -227,7 +227,7 @@ function segCard(s, i) {
       <div><div class="t">${esc(o.label)}${o.recommended ? '<span class="badge brand">推荐</span>' : ""}</div><div class="d">${esc(o.summary)}</div>
       <div class="c">${o.conds.map((x) => esc(condText(x))).join("<br>")}</div>${o.note ? `<div class="d">${esc(o.note)}</div>` : ""}</div>
     </label>`).join("");
-  const unavail = (c.unavailable || []).map((u) => `<div class="opt off" title="这个口径数据做不到">${icon("minus")}<div><div class="t">${esc(u.label)}<span class="badge rule">做不到</span></div><div class="d">${esc(u.reason)}</div></div></div>`).join("");
+  const unavail = (c.unavailable || []).map((u) => `<div class="opt off" title="数据做不到">${icon("minus")}<div><div class="t">${esc(u.label)}<span class="badge rule">做不到</span></div><div class="d">${esc(u.reason)}</div></div></div>`).join("");
   return `<div class="seg ${skip ? "skip" : ""}">${head}<div class="seg-q">${esc(c.question)}${s.reason && s.by === "llm" ? ` <span class="muted">（AI：${esc(s.reason)}）</span>` : ""}</div><div class="opts">${opts}${unavail}</div></div>`;
 }
 
@@ -267,7 +267,7 @@ function renderConditions() {
   }).join("");
   const u = s.universe;
   el.innerHTML = `
-    <div class="step-h"><span class="step-n">3</span><h2>检查和修改条件</h2><span class="sub">这张表就是引擎实际执行的全部内容，没有隐藏规则</span></div>
+    <div class="step-h"><span class="step-n">3</span><h2>检查条件</h2><span class="sub">程序只执行这张表，可以直接改</span></div>
     <div class="uni">
       <span class="uni-title">${icon("layers")}股票池</span>
       <label><select data-act="u-base">${cat.universes.map((x) => `<option value="${x.id}" ${x.id === u.base ? "selected" : ""}>${esc(x.label)}</option>`).join("")}</select></label>
@@ -277,11 +277,11 @@ function renderConditions() {
       <label>上市满 <select data-act="u-days">${[0, 180, 365, 730].map((d) => `<option value="${d}" ${d === u.min_listed_days ? "selected" : ""}>${d} 天</option>`).join("")}</select></label>
       <label><input type="checkbox" data-act="u-bj" ${u.exclude_bj ? "checked" : ""}> 剔除北交所</label>
     </div>
-    <div class="ctable-wrap"><table class="ctable"><thead><tr><th>来自</th><th>指标</th><th>比较</th><th>阈值</th><th>阈值基准</th><th title="全市场有数据的比例">覆盖率</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="7" class="empty">还没有条件</td></tr>`}</tbody></table></div>
+    <div class="ctable-wrap"><table class="ctable"><thead><tr><th>来自</th><th>指标</th><th>比较</th><th>阈值</th><th>阈值基准</th><th title="全市场有数据的比例">有数据</th><th></th></tr></thead><tbody>${rows || `<tr><td colspan="7" class="empty">还没有条件</td></tr>`}</tbody></table></div>
     <div id="checkBox">${checkHtml()}</div>
     <div class="actions">
       <button class="btn" data-act="add">${icon("sliders")}添加条件</button>
-      <span class="muted small">${icon("info", "sm")} 运行编号由“条件 + 数据快照”决定，同样输入永远得到同样结果</span>
+      <span class="muted small">${icon("info", "sm")} 同样的条件和数据，结果永远一样</span>
       <span class="spacer"></span>
       <button class="btn primary big" data-act="screen" id="screenBtn">${icon("funnel")}运行筛选</button>
     </div>`;
@@ -310,7 +310,7 @@ function markStale() {
   if (!S.result) return;
   const box = $("#staleBox");
   if (box) box.innerHTML = JSON.stringify(S.strategy) !== S.resultKey
-    ? `<div class="notice stale"><span>${icon("refresh")} <b>结果已过期</b>条件改过了，下面的名单还是旧条件的结果。</span><button class="btn tiny primary" data-act="screen">重新筛选</button></div>` : "";
+    ? `<div class="notice stale"><span>${icon("refresh")} <b>结果已过期</b>条件改过了，请重新筛选。</span><button class="btn tiny primary" data-act="screen">重新筛选</button></div>` : "";
 }
 
 function editCond(i, patch) {
@@ -345,21 +345,21 @@ function kpi(cls, label, ic, v, sub, tab) {
 function renderResults() {
   const r = S.result; const el = $("#stepResults"); el.classList.remove("hidden");
   const src = r.data_sources || {}; const n = Math.max(r.universe_count, 1); const c = r.counts;
-  const pct = (x) => `占股票池 ${((x / n) * 100).toFixed(1)}%`;
+  const pct = (x) => `占 ${((x / n) * 100).toFixed(1)}%`;
   const funnelRows = [{ label: "股票池", count: r.universe_count }, ...r.funnel];
   const funnel = funnelRows.map((f, k) => `
     <div class="funnel-row ${k === 0 ? "first" : k === funnelRows.length - 1 ? "last" : ""}"><div class="funnel-bar"><i style="width:${(f.count / n) * 100}%"></i><span>${k ? `<span class="mono">${k}</span>　` : ""}${esc(f.label)}</span></div><div class="num">${fmtN(f.count, 0)}</div></div>`).join("");
   const sens = r.impact.map((imp, i) => sensHtml(imp, r.conditions[i], i)).join("");
   const relax = (r.relax || []).map((x) => `<li>“${esc(x.label)}”去掉会多出 ${x.removed_adds} 只${x.nearest_relax ? `；放到 ${x.sweep_kind === "multiplier" ? x.nearest_relax.x + " 倍中位数" : fmtN(x.nearest_relax.x)} 时可筛出 ${x.nearest_relax.count} 只` : ""}</li>`).join("");
   el.innerHTML = `
-    <div class="step-h"><span class="step-n">4</span><h2>结果与解释</h2><span class="sub">入选、差一点、被排除、数据缺失分开放，缺失不算通过</span></div>
+    <div class="step-h"><span class="step-n">4</span><h2>结果与理由</h2><span class="sub">缺数据的单独列出，不算通过</span></div>
     <div id="staleBox"></div>
     <div class="kpis">
       ${kpi("", "股票池", "layers", r.universe_count, `${r.conditions.length} 个条件`, null)}
       ${kpi("pass", "入选", "check", c.passed, pct(c.passed), "passed")}
-      ${kpi("near", "差一点", "target", c.near_miss, "只差一个条件", "near_miss")}
+      ${kpi("near", "差一点", "target", c.near_miss, "差一个条件", "near_miss")}
       ${kpi("fail", "被排除", "x", c.excluded, pct(c.excluded), "excluded")}
-      ${kpi("miss", "数据缺失", "minus", c.missing, "无法判定，不算通过", "missing")}
+      ${kpi("miss", "数据缺失", "minus", c.missing, "不算通过", "missing")}
     </div>
     <p class="summary">${esc(r.summary.text)}</p>
     <div class="meta-line">
@@ -369,22 +369,22 @@ function renderResults() {
     </div>
     ${(r.data_notes || []).map((x) => notice("coverage", "info", "", esc(x))).join("")}
     ${r.conflicts.filter((x) => x.severity !== "coverage").map((x) => { const [t, ic] = SEV[x.severity] || ["提示", "info"]; return notice(x.severity, ic, t, esc(x.message)); }).join("")}
-    ${relax ? notice("tension", "sliders", "结果偏少", `最卡人的条件：<ul class="assume">${relax}</ul>`) : ""}
+    ${relax ? notice("tension", "sliders", "结果偏少", `<ul class="assume">${relax}</ul>`) : ""}
     <div class="unisteps">${r.universe_steps.map((u, i) => `${i ? icon("chevron", "sm") : ""}<span class="st">${esc(u.step)}<span class="n">${fmtN(u.count, 0)}</span></span>`).join("")}</div>
     <div class="grid2">
-      <div class="panel"><h3><span class="t">${icon("funnel")}逐条漏斗</span><span class="sub">按条件顺序依次叠加后还剩多少只</span></h3>${funnel}</div>
-      <div class="panel"><h3><span class="t">${icon("sliders")}条件变化的影响</span><span class="sub">点曲线上的点，把阈值改成那个值并重跑</span></h3><div class="sens">${sens}</div></div>
+      <div class="panel"><h3><span class="t">${icon("funnel")}逐条漏斗</span><span class="sub">每加一个条件还剩几只</span></h3>${funnel}</div>
+      <div class="panel"><h3><span class="t">${icon("sliders")}条件变化的影响</span><span class="sub">点曲线可直接改阈值</span></h3><div class="sens">${sens}</div></div>
     </div>
     <div class="tabs">${Object.entries(CAT).map(([k, v]) => `<button class="tab ${S.tab === k ? "on" : ""}" data-act="tab" data-tab="${k}">${v}<span class="tab-n">${fmtN(r.counts[k], 0)}</span></button>`).join("")}</div>
     <div class="toolbar">
-      <label class="search">${icon("search")}<input type="search" id="lookup" placeholder="查任意一只股票为什么入选或没入选：代码或简称"></label>
-      <button class="btn" data-act="lookup">查依据</button>
+      <label class="search">${icon("search")}<input type="search" id="lookup" placeholder="查任一只股票：代码或简称"></label>
+      <button class="btn" data-act="lookup">查理由</button>
       <span class="spacer"></span>
-      <button class="btn" data-act="compare" ${S.selected.size >= 2 ? "" : "disabled"}>${icon("columns")}对比所选（${S.selected.size}）</button>
-      <button class="btn" data-act="save">${icon("bookmark")}保存策略</button>
-      <button class="btn" data-act="save-monitor">${icon("bell")}转为监控</button>
-      <button class="btn" data-act="csv">${icon("download")}导出 CSV</button>
-      <button class="btn" data-act="explain">${icon("message")}AI 白话解读</button>
+      <button class="btn" data-act="compare" ${S.selected.size >= 2 ? "" : "disabled"}>${icon("columns")}对比（${S.selected.size}）</button>
+      <button class="btn" data-act="save">${icon("bookmark")}保存</button>
+      <button class="btn" data-act="save-monitor">${icon("bell")}监控</button>
+      <button class="btn" data-act="csv">${icon("download")}导出</button>
+      <button class="btn" data-act="explain">${icon("message")}AI 解读</button>
     </div>
     <div id="aiBox"></div>
     <p class="tab-help">${icon("info", "sm")}<span>${esc(CAT_HELP[S.tab])}</span></p>
@@ -405,9 +405,9 @@ function sensHtml(imp, c, i) {
       <line class="cur" x1="${cx}" x2="${cx}" y1="2" y2="${H - 14}"></line>
       ${sw.points.map((p) => `<circle class="hit" cx="${X(p.x)}" cy="${Y(p.count)}" r="5" data-act="sweep" data-i="${i}" data-x="${p.x}" data-n="${p.count}"></circle>`).join("")}
       <text x="${P}" y="${H - 2}">${fmtN(x0)}</text><text x="${W - P}" y="${H - 2}" text-anchor="end">${fmtN(x1)}</text></svg>
-      <div class="spark-tip" id="tip${i}">横轴：${esc(sw.x_label)}；纵轴：其他条件不变时的入选数；红虚线是当前阈值</div>`;
+      <div class="spark-tip" id="tip${i}">横轴 ${esc(sw.x_label)} · 纵轴 入选数 · 红线 当前值</div>`;
   }
-  return `<div class="sens-item"><div class="sens-top"><b>${esc(c.text)}</b>${imp.removed_adds > 0 ? `<span class="add">去掉 +${imp.removed_adds}</span>` : `<span class="zero">去掉不影响结果</span>`}</div>
+  return `<div class="sens-item"><div class="sens-top"><b>${esc(c.text)}</b>${imp.removed_adds > 0 ? `<span class="add">去掉它 +${imp.removed_adds} 只</span>` : `<span class="zero">去掉它不影响</span>`}</div>
     ${imp.removed_adds > 0 && ex ? `<div class="small muted">会多出：${ex}${imp.removed_adds > imp.added_examples.length ? " 等" : ""}</div>` : ""}${svg}</div>`;
 }
 
@@ -429,7 +429,7 @@ function cellHtml(v, s, t) {
 
 function tableHtml() {
   const r = S.result; const rows = currentRows();
-  if (!rows.length) return `<div class="empty">${S.tab === "passed" ? "没有股票满足全部条件。看看上面“条件变化的影响”，放宽最卡人的那一条。" : "这一组没有股票"}</div>`;
+  if (!rows.length) return `<div class="empty">${S.tab === "passed" ? "没有股票满足全部条件。看看上面哪个条件最卡人，放宽它试试。" : "这一组没有股票"}</div>`;
   const arrow = (c) => (S.sort?.col === c ? (S.sort.dir > 0 ? " ↑" : " ↓") : "");
   const gapCol = S.tab === "near_miss" || S.tab === "excluded";
   const head = `<tr><th class="l"></th><th class="l" data-act="sort" data-col="name">股票${arrow("name")}</th><th class="l" data-act="sort" data-col="ind">行业${arrow("ind")}</th>
@@ -465,8 +465,8 @@ async function openEvidence(q) {
       <div style="display:flex;gap:6px;align-items:center"><span class="badge ${cls}">${esc(e.category_text)}</span><button class="btn ghost tiny" data-act="close" title="关闭">${icon("x")}</button></div></div>
       <div class="verdict">${icon("target")}<div>${esc(e.verdict)}</div></div>
       ${items}
-      ${e.items.length ? `<div class="three"><div class="f"><h4>${icon("database", "sm")}事实 · 数据本身</h4>${list(e.facts)}</div><div class="i2"><h4>${icon("funnel", "sm")}推断 · 按你选的口径得出</h4>${list(e.inferences)}</div><div class="u"><h4>${icon("help", "sm")}不确定与局限</h4>${list(e.uncertain)}</div></div>` : ""}
-      <p class="muted small" style="margin-top:16px">快照 <code>${esc(e.snapshot_id)}</code>。以上不构成投资建议。</p>`);
+      ${e.items.length ? `<div class="three"><div class="f"><h4>${icon("database", "sm")}事实</h4>${list(e.facts)}</div><div class="i2"><h4>${icon("funnel", "sm")}推断（按你选的口径）</h4>${list(e.inferences)}</div><div class="u"><h4>${icon("help", "sm")}不确定</h4>${list(e.uncertain)}</div></div>` : ""}
+      <p class="muted small" style="margin-top:16px">快照 <code>${esc(e.snapshot_id)}</code> · 不构成投资建议</p>`);
   } catch (err) { openDrawer(`${notice("error", "alert", "", esc(err.message))}<button class="btn" data-act="close">关闭</button>`); }
 }
 function openDrawer(html) { $("#drawerInner").innerHTML = html; $("#drawer").classList.add("open"); $("#scrim").classList.add("on"); }
@@ -490,14 +490,14 @@ function doCsv() {
   const r = S.result; const cols = ["代码", "名称", "行业", "分组", ...r.conditions.map((c) => c.text), "运行编号", "数据快照"];
   const lines = [cols, ...r.rows.map((x) => [x.c, x.n, x.i || "", CAT[x.k], ...x.v.map((v, i) => (x.s[i] === "m" ? "缺失" : v)), r.run_id, r.snapshot_id])];
   const csv = "﻿" + lines.map((l) => l.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = `明筛_${r.run_id}.csv`; a.click();
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = `所以然_${r.run_id}.csv`; a.click();
 }
 
 async function doExplain() {
-  const box = $("#aiBox"); box.innerHTML = `<div class="ai-box"><span class="spin"></span> AI 正在写白话解读，写完要过数字守门器和合规检查…</div>`;
+  const box = $("#aiBox"); box.innerHTML = `<div class="ai-box"><span class="spin"></span> AI 解读中，写完会核对每个数字…</div>`;
   try {
     const r = await api("/api/explain", { strategy: S.strategy });
-    if (r.ok) box.innerHTML = `<div class="ai-box"><div class="hd">${icon("sparkles", "sm")}AI 解读 · <span class="mono">${esc(r.model || "")}</span><span class="badge pass">${icon("shield", "sm")}已通过守门器</span><span>${esc(r.checked.numbers)}；${esc(r.checked.compliance)}</span></div><div style="white-space:pre-wrap;margin-top:8px">${esc(r.text)}</div></div>`;
+    if (r.ok) box.innerHTML = `<div class="ai-box"><div class="hd">${icon("sparkles", "sm")}AI 解读 · <span class="mono">${esc(r.model || "")}</span><span class="badge pass">${icon("shield", "sm")}数字已核对</span></div><div style="white-space:pre-wrap;margin-top:8px">${esc(r.text)}</div></div>`;
     else if (r.blocked) box.innerHTML = `<div class="ai-box blocked"><div class="hd">${icon("shield", "sm")}<b>AI 解读被拦下</b>${esc(r.reason)}</div><div style="margin-top:6px">${r.unsupported_numbers?.length ? "找不到出处的数字：" + esc(r.unsupported_numbers.join("、")) + "。" : ""}${r.compliance_hits?.length ? "合规问题：" + esc(r.compliance_hits.join("、")) + "。" : ""}</div><details class="fold"><summary>被拦下的草稿</summary><div style="white-space:pre-wrap">${esc(r.draft)}</div></details><div class="small" style="margin-top:6px">改用模板摘要：${esc(r.fallback)}</div></div>`;
     else box.innerHTML = `<div class="ai-box blocked">AI 解读不可用（${esc(r.reason)}）。模板摘要：${esc(r.fallback)}</div>`;
   } catch (e) { box.innerHTML = ""; handleErr(e); }
@@ -507,7 +507,7 @@ async function doSave(monitor) {
   const name = prompt("给这个策略起个名字", S.query.slice(0, 30)); if (name === null) return;
   try {
     const s = await api("/api/strategies", { strategy: S.strategy, name });
-    if (monitor) { await api("/api/monitors", { strategy_id: s.id }); toast("已保存并转为监控：数据快照更新后自动重跑，记录新进入和移出的股票"); }
+    if (monitor) { await api("/api/monitors", { strategy_id: s.id }); toast("已开始监控：每次数据更新后自动重跑，记录进出名单"); }
     else toast("已保存");
     renderSaved();
   } catch (e) { handleErr(e); }
@@ -518,7 +518,7 @@ async function renderSaved() {
   let list = [], mons = [];
   try { [list, mons] = await Promise.all([api("/api/strategies"), api("/api/monitors")]); } catch { /* 数据未就绪时忽略 */ }
   const monBy = Object.fromEntries(mons.map((m) => [m.strategy_id, m]));
-  el.innerHTML = `<div class="step-h"><span class="step-n">${icon("bookmark", "sm")}</span><h2>我的策略与监控</h2><span class="sub">保存在本浏览器的匿名编号下，不需要登录，不收集个人信息</span></div>
+  el.innerHTML = `<div class="step-h"><span class="step-n">${icon("bookmark", "sm")}</span><h2>我的策略</h2><span class="sub">存在本浏览器，无需登录</span></div>
     ${list.length ? `<div class="saved-list">${list.map((s) => {
       const m = monBy[s.id];
       return `<div class="saved-item"><div class="grow"><div class="nm">${esc(s.name)}${m ? `<span class="badge pass">${icon("bell", "sm")}监控中</span>` : ""}${s.data_mode === "demo" ? `<span class="badge miss">演示</span>` : ""}</div>
@@ -527,7 +527,7 @@ async function renderSaved() {
         <button class="btn tiny" data-act="load" data-id="${s.id}">${icon("refresh", "sm")}载入</button>
         ${m ? `<button class="btn tiny" data-act="mon-run" data-id="${m.id}">立即重跑</button><button class="btn tiny" data-act="mon-hist" data-id="${m.id}">历史</button>` : `<button class="btn tiny" data-act="mon-new" data-id="${s.id}">${icon("bell", "sm")}转为监控</button>`}
         <button class="btn ghost tiny" data-act="sdel" data-id="${s.id}" title="删除">${icon("trash", "sm")}</button><div class="runs" id="runs-${m ? m.id : ""}"></div></div>`;
-    }).join("")}</div>` : `<div class="muted small">还没有保存的策略。跑出结果后点“保存策略”或“转为监控”。</div>`}`;
+    }).join("")}</div>` : `<div class="muted small">还没有保存的策略。</div>`}`;
 }
 
 async function monHistory(id) {
@@ -592,7 +592,7 @@ document.addEventListener("click", async (ev) => {
   else if (a === "mon-run") { try { const r = await api(`/api/monitors/${t.dataset.id}/run`, {}); toast(r.note, 4000); renderSaved(); } catch (e) { handleErr(e); } }
   else if (a === "mon-hist") monHistory(t.dataset.id);
   else if (a === "data-panel") dataPanel();
-  else if (a === "theme") toggleTheme();
+  else if (a === "theme") toggleTheme(t.dataset.theme);
   else if (a === "go-demo") { S.data = "demo"; history.replaceState(null, "", "?data=demo"); await loadMeta(); }
   else if (a === "go-live") { S.data = null; history.replaceState(null, "", location.pathname); await loadMeta(); }
 });
@@ -612,7 +612,7 @@ document.addEventListener("change", (ev) => {
   else if (a === "u-st") { S.strategy.universe.exclude_st = t.checked; runCheck(); markStale(); }
   else if (a === "u-bj") { S.strategy.universe.exclude_bj = t.checked; runCheck(); markStale(); }
   else if (a === "u-days") { S.strategy.universe.min_listed_days = Number(t.value); runCheck(); markStale(); }
-  else if (a === "pick") { if (t.checked) S.selected.add(t.dataset.code); else S.selected.delete(t.dataset.code); const b = document.querySelector('[data-act="compare"]'); if (b) { b.disabled = S.selected.size < 2; b.innerHTML = `${icon("columns")}对比所选（${S.selected.size}）`; } }
+  else if (a === "pick") { if (t.checked) S.selected.add(t.dataset.code); else S.selected.delete(t.dataset.code); const b = document.querySelector('[data-act="compare"]'); if (b) { b.disabled = S.selected.size < 2; b.innerHTML = `${icon("columns")}对比（${S.selected.size}）`; } }
 });
 
 document.addEventListener("mouseover", (ev) => {
@@ -637,5 +637,17 @@ async function loadMeta() {
     try { const r = await api("/api/industries"); S.meta.industryByName = r.by_name; S.meta.industryCodes = r.by_code; } catch { /* 可选 */ }
   }
   if (!S.meta.data_ready) setTimeout(loadMeta, 15000);
+  autoRunFromUrl();
+}
+
+/* 链接里带问题：/?q=一句话 自动解析；再加 &run=1 自动筛选。方便分享和演示 */
+let autoRan = false;
+async function autoRunFromUrl() {
+  const p = new URLSearchParams(location.search); const q = p.get("q");
+  if (autoRan || !q || !S.meta?.data_ready) return;
+  autoRan = true;
+  $("#q").value = q;
+  await doParse(q);
+  if (p.get("run") === "1" && S.strategy) { await doScreen(); $("#stepResults").scrollIntoView({ block: "start" }); }
 }
 loadMeta();

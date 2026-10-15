@@ -5,7 +5,7 @@
 .venv/bin/python eval/run_eval.py     # 意图解析评测（规则）；加 --llm 同时评测大模型
 ```
 
-当前结果：**56 passed**；规则解析评测 25/33（详见 `eval/results/`）。
+当前结果：**57 passed**；规则解析评测 25/33（详见 `eval/results/`）。
 
 ## 1. 主链路
 
@@ -34,6 +34,7 @@
 | 除权事件落在停牌日 | 顺延到之后第一个交易日 | `test_event_on_suspension_day_rolls_forward` |
 | 送转比例单位理解错误 | 除权日出现大量假涨跌，体检发现后停止构建 | `test_wrong_bonus_unit_would_be_caught` |
 | 行情不足 40 个交易日 | 波动率记为缺失 | `test_price_features_windows_and_missing` |
+| 扶摇财务指标的同比字段为空 | 增速改用利润表原始金额自算；去年同期营收 ≤ 0 或利润为 0 时记为缺失；亏损收窄 / 扭亏记为正增长 | `test_growth_from_income_statement_amounts` |
 | 大模型超时 / 返回非法 JSON | 自动退回规则解析，页面写明原因 | `test_llm_failure_falls_back_to_rules` |
 | 大模型输出目录外的概念、越界数值 | 守门器整条拦下，页面展示被拦内容和原因；合法片段照常使用 | `test_llm_out_of_catalog_is_blocked` |
 | 监控遇到同一数据快照 | 明确记录“没有新数据，名单不变”，不当作新一期结果 | `test_main_chain_on_demo` |
