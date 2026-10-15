@@ -2,7 +2,7 @@
   {"id": "canon", "q": "经营改善、估值合理、走势相对稳定", "concepts": ["op_improve", "val_fair", "px_stable"]},
   {"id": "canon2", "q": "找一些业绩改善、估值不贵、波动小的公司", "concepts": ["op_improve", "val_fair", "px_stable"]},
   {"id": "colloq1", "q": "业绩越来越好，价格不算贵，股价别太折腾", "concepts": ["op_improve", "val_fair", "px_stable"], "tag": "口语"},
-  {"id": "colloq2", "q": "公司越来越赚钱，而且不怎么借钱", "concepts": ["roe_high", "debt_low"], "tag": "口语"},
+  {"id": "colloq2", "q": "公司越来越赚钱，而且不怎么借钱", "concepts": ["roe_high", "debt_low"], "concepts_alt": [["op_improve", "debt_low"]], "tag": "口语", "note": "“越来越”强调变化，理解成“经营改善·盈利能力在变强”同样合理（复核后放宽）"},
   {"id": "colloq3", "q": "每年分钱多、股价也比较稳的老牌公司", "concepts": ["div_high", "px_stable"], "tag": "口语", "allow_extra": true},
   {"id": "colloq4", "q": "收入和利润都在高速增长的成长股，但别是追高的", "concepts": ["growth_high", "not_hot"], "tag": "口语"},
   {"id": "div_big", "q": "高股息、低波动的大盘股", "concepts": ["div_high", "px_stable"], "universe": "hs300"},

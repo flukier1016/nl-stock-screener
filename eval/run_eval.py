@@ -6,7 +6,8 @@
     .venv/bin/python eval/run_eval.py --llm        # 规则 + 大模型（需要配置大模型 Key）
 
 评分口径（每条用例只检查它写明的项）：
-概念集合（召回；未标 allow_extra 时也查多余）、写明数字的条件（指标 + 数值 + 方向族）、
+概念集合（召回；未标 allow_extra 时也查多余；concepts_alt 列出同样合理的另一种理解）、
+写明数字的条件（比较编译后的条件：指标 + 数值 + 方向族）、
 股票池、行业、拒绝片段数、未识别片段数、剔除项。结果写到 eval/results/。
 """
 from __future__ import annotations
@@ -21,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from mingshai import llm, parse_llm  # noqa: E402
+from mingshai.compile import compile_strategy  # noqa: E402
 from mingshai.guard import check_segment  # noqa: E402
 from mingshai.parse_rules import parse as rule_parse  # noqa: E402
 from mingshai.store import load_demo, load_snapshot  # noqa: E402
@@ -32,10 +34,13 @@ def score(case: dict, segs) -> dict:
     checks = {}
     got_c = {s.concept_id for s in segs if s.kind == "concept"}
     if "concepts" in case:
-        exp = set(case["concepts"])
-        checks["concepts"] = exp <= got_c and (case.get("allow_extra") or got_c <= exp)
+        alts = [set(case["concepts"])] + [set(a) for a in case.get("concepts_alt", [])]
+        checks["concepts"] = any(exp <= got_c and (case.get("allow_extra") or got_c <= exp) for exp in alts)
     if "explicit" in case:
-        got = [(s.metric, FAMILY.get(s.op), s.value) for s in segs if s.kind == "explicit"]
+        # 比较最终编译出的条件，而不是片段类型：用户写的数字既可能被解析成“写明的条件”，
+        # 也可能被映射到某个概念的等价方案（如“破净”→ 低估值的“市净率 1 倍以下”方案），两者执行起来一样
+        strategy, _, _ = compile_strategy(case["q"], segs)
+        got = [(c.metric, FAMILY.get(c.op), c.value) for c in strategy.conditions]
         ok = True
         for m, op, v in case["explicit"]:
             hit = any(g[0] == m and g[1] == FAMILY[op] and _eq(g[2], v) for g in got)

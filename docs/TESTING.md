@@ -5,7 +5,7 @@
 .venv/bin/python eval/run_eval.py     # 意图解析评测（规则）；加 --llm 同时评测大模型
 ```
 
-当前结果：**57 passed**；规则解析评测 25/33（详见 `eval/results/`）。
+当前结果：**60 passed**；意图解析评测：规则 25/33，Claude 32/33（详见 `eval/results/`）。
 
 ## 1. 主链路
 

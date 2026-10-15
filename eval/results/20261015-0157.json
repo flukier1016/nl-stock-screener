@@ -1,0 +1,1170 @@
+{
+ "snapshot": "20261015-0147",
+ "industries": 90,
+ "results": [
+  {
+   "mode": "rules",
+   "n": 33,
+   "pass": 25,
+   "pass_rate": 0.758,
+   "by_tag": {
+    "常规": "25/26",
+    "口语": "0/6",
+    "英文": "0/1"
+   },
+   "rows": [
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:op_improve",
+      "concept:val_fair",
+      "concept:px_stable"
+     ],
+     "id": "canon",
+     "q": "经营改善、估值合理、走势相对稳定",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:op_improve",
+      "concept:val_fair",
+      "concept:px_stable"
+     ],
+     "id": "canon2",
+     "q": "找一些业绩改善、估值不贵、波动小的公司",
+     "tag": "",
+     "ms": 28
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:",
+      "unsupported:"
+     ],
+     "id": "colloq1",
+     "q": "业绩越来越好，价格不算贵，股价别太折腾",
+     "tag": "口语",
+     "ms": 27
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:"
+     ],
+     "id": "colloq2",
+     "q": "公司越来越赚钱，而且不怎么借钱",
+     "tag": "口语",
+     "ms": 27
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:",
+      "concept:px_stable",
+      "unsupported:"
+     ],
+     "id": "colloq3",
+     "q": "每年分钱多、股价也比较稳的老牌公司",
+     "tag": "口语",
+     "ms": 27
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "concept:growth_high",
+      "unsupported:"
+     ],
+     "id": "colloq4",
+     "q": "收入和利润都在高速增长的成长股，但别是追高的",
+     "tag": "口语",
+     "ms": 26
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:div_high",
+      "concept:px_stable",
+      "universe:cap_large"
+     ],
+     "id": "div_big",
+     "q": "高股息、低波动的大盘股",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:growth_high",
+      "unsupported:",
+      "universe:cap_small"
+     ],
+     "id": "small_growth",
+     "q": "高成长但估值又低的小盘股",
+     "tag": "",
+     "ms": 26
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "universe:zz500",
+      "concept:cash_good"
+     ],
+     "id": "mid",
+     "q": "中证500里现金流好的",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "industry:银行",
+      "explicit:pb_mrq",
+      "explicit:div_yield"
+     ],
+     "id": "bank",
+     "q": "银行股里市净率低于1倍、股息率5%以上的",
+     "tag": "",
+     "ms": 26
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:roe_ann",
+      "explicit:debt_ratio",
+      "concept:cash_good"
+     ],
+     "id": "roe_debt",
+     "q": "ROE大于15%、负债率不超过40%、现金流好的公司",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:pe_ttm",
+      "explicit:pe_ttm"
+     ],
+     "id": "pe_range",
+     "q": "PE在10到20倍之间、不要亏损的",
+     "tag": "",
+     "ms": 26
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:pe_ttm",
+      "industry:白酒"
+     ],
+     "id": "pe_low",
+     "q": "市盈率低于15倍的白酒公司",
+     "tag": "",
+     "ms": 28
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:pb_mrq",
+      "industry:证券"
+     ],
+     "id": "pb_break",
+     "q": "破净的券商",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:rev_yoy",
+      "explicit:np_yoy"
+     ],
+     "id": "growth_num",
+     "q": "营收增速超过30%、净利润增长不低于20%",
+     "tag": "",
+     "ms": 28
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:liquid",
+      "concept:mom_up",
+      "industry:半导体"
+     ],
+     "id": "liquid",
+     "q": "成交活跃、走势偏强的半导体",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:mom_up",
+      "concept:not_hot"
+     ],
+     "id": "mom_hot",
+     "q": "走势强但涨幅不大的",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:div_high"
+     ],
+     "id": "stable_div",
+     "q": "分红稳定",
+     "tag": "",
+     "ms": 28
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "excludes": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "exclude:st",
+      "exclude:new",
+      "concept:debt_low"
+     ],
+     "id": "excl",
+     "q": "剔除ST和次新股，财务稳健的公司",
+     "tag": "",
+     "ms": 28
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:gross_margin",
+      "concept:roe_high"
+     ],
+     "id": "margin",
+     "q": "毛利率高于40%、盈利能力强",
+     "tag": "",
+     "ms": 26
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:vol_60d",
+      "explicit:mdd_120d"
+     ],
+     "id": "vol_num",
+     "q": "年化波动率25%以下、最大回撤不超过10%",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:amt_20d",
+      "universe:hs300",
+      "unsupported:"
+     ],
+     "id": "amt_num",
+     "q": "日均成交额5亿以上的沪深300成分股",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "refused": true
+     },
+     "got": [
+      "refused:"
+     ],
+     "id": "ref1",
+     "q": "明天会涨停的股票",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "industries": true,
+      "refused": true
+     },
+     "got": [
+      "refused:",
+      "industry:证券",
+      "refused:"
+     ],
+     "id": "ref2",
+     "q": "推荐我买哪只券商股，稳赚的那种",
+     "tag": "",
+     "ms": 28
+    },
+    {
+     "pass": true,
+     "checks": {
+      "refused": true
+     },
+     "got": [
+      "unsupported:",
+      "refused:",
+      "unsupported:",
+      "refused:"
+     ],
+     "id": "ref3",
+     "q": "茅台目标价多少，能涨到3000吗",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "universe": true,
+      "refused": true
+     },
+     "got": [
+      "refused:",
+      "universe:cap_small"
+     ],
+     "id": "ref4",
+     "q": "下周能翻倍的小盘股",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "refused": true
+     },
+     "got": [
+      "concept:val_fair",
+      "refused:"
+     ],
+     "id": "mixed_ref",
+     "q": "估值合理、明天能大涨的",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "unsupported": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:"
+     ],
+     "id": "unsup1",
+     "q": "管理层靠谱、有护城河的公司",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "unsupported": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:"
+     ],
+     "id": "unsup2",
+     "q": "受益于政策利好的龙头",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": true,
+     "checks": {
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "universe:cap_large",
+      "universe:cap_small"
+     ],
+     "id": "conflict",
+     "q": "大盘股和小盘股都要",
+     "tag": "",
+     "ms": 27
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "concept:val_low",
+      "unsupported:"
+     ],
+     "id": "pe_ind",
+     "q": "估值比同行便宜、经营在变好",
+     "tag": "口语",
+     "ms": 27
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:"
+     ],
+     "id": "cash_colloq",
+     "q": "利润都是真金白银收回来的",
+     "tag": "口语",
+     "ms": 27
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:",
+      "unsupported:",
+      "unsupported:",
+      "unsupported:",
+      "unsupported:"
+     ],
+     "id": "eng",
+     "q": "low PE, high dividend, stable price",
+     "tag": "英文",
+     "ms": 29
+    }
+   ]
+  },
+  {
+   "mode": "llm",
+   "n": 33,
+   "pass": 31,
+   "pass_rate": 0.939,
+   "by_tag": {
+    "常规": "25/26",
+    "口语": "5/6",
+    "英文": "1/1"
+   },
+   "rows": [
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:op_improve",
+      "concept:val_fair",
+      "concept:px_stable"
+     ],
+     "id": "canon",
+     "q": "经营改善、估值合理、走势相对稳定",
+     "tag": "",
+     "ms": 7310,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:op_improve",
+      "concept:val_fair",
+      "concept:px_stable"
+     ],
+     "id": "canon2",
+     "q": "找一些业绩改善、估值不贵、波动小的公司",
+     "tag": "",
+     "ms": 6658,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:op_improve",
+      "concept:val_fair",
+      "concept:px_stable"
+     ],
+     "id": "colloq1",
+     "q": "业绩越来越好，价格不算贵，股价别太折腾",
+     "tag": "口语",
+     "ms": 4893,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:op_improve",
+      "concept:debt_low"
+     ],
+     "id": "colloq2",
+     "q": "公司越来越赚钱，而且不怎么借钱",
+     "tag": "口语",
+     "ms": 5162,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:div_high",
+      "concept:px_stable",
+      "unsupported:"
+     ],
+     "id": "colloq3",
+     "q": "每年分钱多、股价也比较稳的老牌公司",
+     "tag": "口语",
+     "ms": 5702,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:growth_high",
+      "concept:not_hot"
+     ],
+     "id": "colloq4",
+     "q": "收入和利润都在高速增长的成长股，但别是追高的",
+     "tag": "口语",
+     "ms": 4689,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:div_high",
+      "concept:px_stable",
+      "universe:hs300"
+     ],
+     "id": "div_big",
+     "q": "高股息、低波动的大盘股",
+     "tag": "",
+     "ms": 4692,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:growth_high",
+      "concept:val_low",
+      "universe:zz1000"
+     ],
+     "id": "small_growth",
+     "q": "高成长但估值又低的小盘股",
+     "tag": "",
+     "ms": 4325,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "universe:zz500",
+      "concept:cash_good"
+     ],
+     "id": "mid",
+     "q": "中证500里现金流好的",
+     "tag": "",
+     "ms": 3844,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "industry:银行",
+      "explicit:pb_mrq",
+      "explicit:div_yield"
+     ],
+     "id": "bank",
+     "q": "银行股里市净率低于1倍、股息率5%以上的",
+     "tag": "",
+     "ms": 3819,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:roe_ann",
+      "explicit:debt_ratio",
+      "concept:cash_good"
+     ],
+     "id": "roe_debt",
+     "q": "ROE大于15%、负债率不超过40%、现金流好的公司",
+     "tag": "",
+     "ms": 5293,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:pe_ttm",
+      "explicit:pe_ttm"
+     ],
+     "id": "pe_range",
+     "q": "PE在10到20倍之间、不要亏损的",
+     "tag": "",
+     "ms": 6299,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:pe_ttm",
+      "industry:白酒"
+     ],
+     "id": "pe_low",
+     "q": "市盈率低于15倍的白酒公司",
+     "tag": "",
+     "ms": 3518,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": false,
+     "checks": {
+      "explicit": false,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:val_low",
+      "industry:证券"
+     ],
+     "id": "pb_break",
+     "q": "破净的券商",
+     "tag": "",
+     "ms": 3112,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:rev_yoy",
+      "explicit:np_yoy"
+     ],
+     "id": "growth_num",
+     "q": "营收增速超过30%、净利润增长不低于20%",
+     "tag": "",
+     "ms": 3428,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:liquid",
+      "concept:mom_up",
+      "industry:半导体"
+     ],
+     "id": "liquid",
+     "q": "成交活跃、走势偏强的半导体",
+     "tag": "",
+     "ms": 4602,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:mom_up",
+      "concept:not_hot"
+     ],
+     "id": "mom_hot",
+     "q": "走势强但涨幅不大的",
+     "tag": "",
+     "ms": 5071,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:div_high"
+     ],
+     "id": "stable_div",
+     "q": "分红稳定",
+     "tag": "",
+     "ms": 3246,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "excludes": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "exclude:st",
+      "exclude:new",
+      "concept:debt_low"
+     ],
+     "id": "excl",
+     "q": "剔除ST和次新股，财务稳健的公司",
+     "tag": "",
+     "ms": 4088,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:gross_margin",
+      "concept:roe_high"
+     ],
+     "id": "margin",
+     "q": "毛利率高于40%、盈利能力强",
+     "tag": "",
+     "ms": 3769,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:vol_60d",
+      "explicit:mdd_120d"
+     ],
+     "id": "vol_num",
+     "q": "年化波动率25%以下、最大回撤不超过10%",
+     "tag": "",
+     "ms": 3840,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:amt_20d",
+      "universe:hs300"
+     ],
+     "id": "amt_num",
+     "q": "日均成交额5亿以上的沪深300成分股",
+     "tag": "",
+     "ms": 2838,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "refused": true
+     },
+     "got": [
+      "refused:"
+     ],
+     "id": "ref1",
+     "q": "明天会涨停的股票",
+     "tag": "",
+     "ms": 3408,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "industries": true,
+      "refused": true
+     },
+     "got": [
+      "refused:",
+      "industry:证券",
+      "refused:"
+     ],
+     "id": "ref2",
+     "q": "推荐我买哪只券商股，稳赚的那种",
+     "tag": "",
+     "ms": 5774,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "refused": true
+     },
+     "got": [
+      "refused:",
+      "refused:"
+     ],
+     "id": "ref3",
+     "q": "茅台目标价多少，能涨到3000吗",
+     "tag": "",
+     "ms": 5483,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "universe": true,
+      "refused": true
+     },
+     "got": [
+      "refused:",
+      "universe:zz1000"
+     ],
+     "id": "ref4",
+     "q": "下周能翻倍的小盘股",
+     "tag": "",
+     "ms": 4743,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "refused": true
+     },
+     "got": [
+      "concept:val_fair",
+      "refused:"
+     ],
+     "id": "mixed_ref",
+     "q": "估值合理、明天能大涨的",
+     "tag": "",
+     "ms": 4861,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "unsupported": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:"
+     ],
+     "id": "unsup1",
+     "q": "管理层靠谱、有护城河的公司",
+     "tag": "",
+     "ms": 4694,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "unsupported": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:"
+     ],
+     "id": "unsup2",
+     "q": "受益于政策利好的龙头",
+     "tag": "",
+     "ms": 5511,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "universe:cap_large",
+      "universe:cap_small"
+     ],
+     "id": "conflict",
+     "q": "大盘股和小盘股都要",
+     "tag": "",
+     "ms": 4486,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:val_low",
+      "concept:op_improve"
+     ],
+     "id": "pe_ind",
+     "q": "估值比同行便宜、经营在变好",
+     "tag": "口语",
+     "ms": 5311,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:cash_good"
+     ],
+     "id": "cash_colloq",
+     "q": "利润都是真金白银收回来的",
+     "tag": "口语",
+     "ms": 2682,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:val_low",
+      "concept:div_high",
+      "concept:px_stable"
+     ],
+     "id": "eng",
+     "q": "low PE, high dividend, stable price",
+     "tag": "英文",
+     "ms": 4941,
+     "mode": "llm",
+     "blocked": 0,
+     "fallback": ""
+    }
+   ]
+  }
+ ],
+ "llm": {
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "available": true
+ }
+}

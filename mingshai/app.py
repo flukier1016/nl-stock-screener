@@ -295,20 +295,21 @@ def api_explain(body: ExplainIn, request: Request):
                       for c in body.strategy.conditions)
     funnel = "\n".join(f"- 满足前 {i + 1} 条后剩 {f['count']} 只" for i, f in enumerate(res["funnel"]))
     impact = "\n".join(f"- 去掉“{f['label']}”会多出 {i['removed_adds']} 只" for f, i in zip(res["funnel"], res["impact"], strict=True))
-    facts = (f"用户原话：{body.strategy.query}\n条件：\n{conds}\n结果：{summ['text']}\n逐条漏斗：\n{funnel}\n"
-             f"条件影响：\n{impact}\n数据：财务 2026 中报；估值快照与行情时点见数据状态栏。")
-    system = ("你是选股结果的解说员。只能复述下面给出的事实，用 3 条以内的中文短句说明：这组条件实际在筛什么、"
+    from .registry import UNIVERSES_BY_ID
+    u = UNIVERSES_BY_ID[body.strategy.universe.base]
+    pool = " → ".join(f"{x['step']} {x['count']} 只" for x in res["universe_steps"])
+    pool_note = f"（{u.note}）" if u.index_thscode else ""
+    facts = (f"用户原话：{body.strategy.query}\n股票池：{pool}{pool_note}\n条件：\n{conds}\n结果：{summ['text']}\n"
+             f"逐条漏斗：\n{funnel}\n条件影响：\n{impact}\n数据：财务 2026 中报；估值快照与行情时点见数据状态栏。")
+    system = ("你是选股结果的解说员。只能复述下面给出的事实（股票池与条件都已写明），用 3 条以内的中文短句说明：这组条件实际在筛什么、"
               "哪一条最严、用户可以怎么调整。禁止出现任何没有在事实里给出的数字；禁止预测涨跌、承诺收益、"
               "给出买卖建议；不要点名推荐任何股票。")
     try:
         text, info = llm.complete_text(system, facts)
     except llm.LLMError as e:
         return {"ok": False, "reason": str(e), "fallback": summ["text"]}
-    allowed = set(summ["numbers"]) | {f["count"] for f in res["funnel"]} | {i + 1 for i in range(len(res["funnel"]))}
-    for c in body.strategy.conditions:
-        vals = c.value if isinstance(c.value, list) else [c.value]
-        allowed |= {float(v) for v in vals}
-    allowed |= {2026, 3, 1, 2}
+    # 守门规则：解读里出现的每个数字，都必须出现在交给它的事实材料里（含指标名里的“60 日”“2026 中报”）
+    allowed = {float(x.replace(",", "")) for x in explain._NUM_RE.findall(facts)} | set(summ["numbers"])
     bad_nums = explain.number_guard(text, allowed)
     bad_words = explain.compliance_guard(text)
     if bad_nums or bad_words:
