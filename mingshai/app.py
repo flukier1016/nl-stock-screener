@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import asyncio
 import os
+import secrets
 import threading
 import time
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -41,8 +42,75 @@ async def lifespan(_app):
     yield
 
 
-app = FastAPI(title="所以然 · 一句话选股", version=VERSION, lifespan=lifespan)
+# 不公开接口文档（/docs、/redoc、/openapi.json 会把管理接口的结构也列出来）
+app = FastAPI(title="所以然 · 一句话选股", version=VERSION, lifespan=lifespan,
+              docs_url=None, redoc_url=None, openapi_url=None)
 app.add_middleware(GZipMiddleware, minimum_size=2048)
+
+# 浏览器安全响应头：只允许本站脚本、禁止被嵌入别的网页、不嗅探类型；字体样式表来自 Google Fonts
+CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+       "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; "
+       "base-uri 'self'; form-action 'self'; frame-ancestors 'none'")
+SECURITY_HEADERS = {
+    "Content-Security-Policy": CSP,
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+    "Strict-Transport-Security": "max-age=31536000",
+    "Cross-Origin-Opener-Policy": "same-origin",
+}
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    resp = await call_next(request)
+    for k, v in SECURITY_HEADERS.items():
+        resp.headers.setdefault(k, v)
+    if request.url.path.startswith("/api/"):
+        resp.headers.setdefault("Cache-Control", "no-store")
+    return resp
+
+
+class AIGate:
+    """AI 调用限流，防止有人刷接口把额度耗光：同一来源 10 分钟最多 15 次；全站 1 小时最多 40 次（来源 IP 可伪造，全站上限才是硬保护）。"""
+
+    def __init__(self, per_client: int = 15, client_window: float = 600, total: int = 40, total_window: float = 3600):
+        self.per_client, self.client_window, self.total, self.total_window = per_client, client_window, total, total_window
+        self._lock = threading.Lock()
+        self._by_client: dict[str, deque] = {}
+        self._all: deque = deque()
+
+    def take(self, client: str) -> str | None:
+        """记一次调用；超限时不记，返回原因。"""
+        now = time.monotonic()
+        with self._lock:
+            while self._all and now - self._all[0] > self.total_window:
+                self._all.popleft()
+            q = self._by_client.setdefault(client, deque())
+            while q and now - q[0] > self.client_window:
+                q.popleft()
+            if len(q) >= self.per_client:
+                return f"AI 调用太频繁（同一来源 {self.client_window / 60:g} 分钟最多 {self.per_client} 次）"
+            if len(self._all) >= self.total:
+                return f"全站 AI 调用太频繁（每 {self.total_window / 3600:g} 小时最多 {self.total} 次）"
+            q.append(now)
+            self._all.append(now)
+            if len(self._by_client) > 5000:
+                self._by_client = {k: v for k, v in self._by_client.items() if v and now - v[-1] <= self.client_window}
+            return None
+
+
+ai_gate = AIGate()
+
+
+def _origin(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
+def _admin_ok(authorization: str | None) -> bool:
+    token = os.getenv("MINGSHAI_ADMIN_TOKEN")
+    return bool(token) and secrets.compare_digest((authorization or "").encode(), f"Bearer {token}".encode())
 _cache: OrderedDict[str, tuple[Strategy, dict]] = OrderedDict()
 _build_lock = threading.Lock()
 
@@ -129,7 +197,7 @@ class CompileIn(BaseModel):
 @app.post("/api/parse")
 def api_parse(body: ParseIn, request: Request):
     ds = dataset(_mode(request))
-    pr = parse_llm.parse(body.query.strip(), ds.industries)
+    pr = parse_llm.parse(body.query.strip(), ds.industries, gate=lambda: ai_gate.take(_origin(request)))
     strategy, assumptions, notes = compile_strategy(body.query, pr.segments)
     refused = [s for s in pr.segments if s.kind == "refused"]
     return {"parse": pr.model_dump(), "strategy": strategy.model_dump(), "assumptions": pr.assumptions + assumptions,
@@ -294,6 +362,8 @@ def api_explain(body: ExplainIn, request: Request):
     summ = explain.summary(res, body.strategy)
     if not llm.available():
         return {"ok": False, "reason": llm.unavailable_reason(), "fallback": summ["text"]}
+    if why := ai_gate.take(_origin(request)):
+        return {"ok": False, "reason": why, "fallback": summ["text"]}
     conds = "\n".join(f"- {describe(c.metric, c.op, c.value, c.basis)}（{METRICS_BY_ID[c.metric].definition}）"
                       for c in body.strategy.conditions)
     funnel = "\n".join(f"- 满足前 {i + 1} 条后剩 {f['count']} 只" for i, f in enumerate(res["funnel"]))
@@ -393,8 +463,7 @@ def data_status():
 
 @app.post("/api/admin/build")
 def admin_build(request: Request, refresh: bool = False, authorization: str | None = Header(None)):
-    token = os.getenv("MINGSHAI_ADMIN_TOKEN")
-    if not token or authorization != f"Bearer {token}":
+    if not _admin_ok(authorization):
         raise HTTPException(401, detail={"message": "需要管理口令"})
     started = _start_build(refresh=refresh)
     return {"started": started, "build": _build_state()}
@@ -407,8 +476,7 @@ _REQUIRED_TABLES = {"snapshot": {"features", "meta"}, "work": {"raw_fin", "raw_i
 @app.post("/api/admin/snapshot")
 async def admin_upload(request: Request, kind: str = "snapshot", authorization: str | None = Header(None)):
     """运维用：上传本地构建好的快照（或取数工作库），校验表结构后原子替换。需要管理口令。"""
-    token = os.getenv("MINGSHAI_ADMIN_TOKEN")
-    if not token or authorization != f"Bearer {token}":
+    if not _admin_ok(authorization):
         raise HTTPException(401, detail={"message": "需要管理口令"})
     if kind not in _REQUIRED_TABLES:
         raise HTTPException(400, detail={"message": "kind 只能是 snapshot 或 work"})

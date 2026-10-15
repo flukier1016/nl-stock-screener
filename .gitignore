@@ -12,6 +12,9 @@ __pycache__/
 *.sqlite
 *.parquet
 secrets/
+*.key
+*.pem
+*.token
 .DS_Store
 /build/
 docs/demo.mp4

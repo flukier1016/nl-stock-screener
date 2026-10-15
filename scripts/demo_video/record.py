@@ -75,7 +75,7 @@ OVERLAY_JS = """
 """.replace("%CSS%", json.dumps(OVERLAY_CSS.replace("%ZOOM%", str(ZOOM))))
 
 TITLE = f"""<div class="in"><img src="/static/icon.svg"><h1>所以然</h1><h2>一句话选股 · 不只给名单，也讲清为什么</h2>
-<div class="meta">同花顺 AI 产品经理笔试 · 题目二：自然语言智能选股与策略解释器</div>
+<div class="meta">自然语言智能选股与策略解释器</div>
 <div style="margin-top:22px"><span class="pill">线上真实数据：同花顺金融数据 API（扶摇）全市场 5,580 只</span>
 <span class="pill">意图解析：自有 Claude API（Claude Opus 5.5）</span></div></div>"""
 END = f"""<div class="in"><img src="/static/icon.svg"><h1>所以然</h1><h2>AI 只翻译 · 程序出结果 · 每个数字都有出处</h2>

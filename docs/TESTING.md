@@ -5,7 +5,7 @@
 .venv/bin/python eval/run_eval.py     # 意图解析评测（规则）；加 --llm 同时评测大模型
 ```
 
-当前结果：**68 passed**；意图解析评测：规则 25/33，Claude 32/33（详见 `eval/results/`）。
+当前结果：**75 passed**；意图解析评测：规则 25/33，Claude 32/33（详见 `eval/results/`）。
 
 ## 1. 主链路
 
@@ -51,6 +51,17 @@
 | 计价与实测对得上 | 首次写缓存约 0.034 美元、命中缓存约 0.012 美元一次 | `test_measured_calls_match_published_prices` |
 | 启动时 Key 在环境变量里 | 搬进数据卷上的 Key 文件（权限 600），进程里只留文件这一份；切断后重启即使环境变量又出现 Key 也会清掉 | `test_prepare_key_moves_env_key_into_file_then_cut_off_keeps_it_gone` |
 | 额度用完后继续解析 | 自动走规则解析，原因写“AI 额度已用完”；`/api/meta` 的 `llm.budget` 显示已切断 | `test_parse_falls_back_to_rules_with_budget_reason` |
+
+## 2.2 安全
+
+| 场景 | 预期 | 自动化测试 |
+|---|---|---|
+| 打开页面或调用接口 | 带内容安全策略（只允许本站脚本、禁止被嵌入）、`nosniff`、HSTS 等响应头；接口响应不缓存 | `test_security_headers_on_page_and_api` |
+| 访问 `/docs` `/redoc` `/openapi.json` | 404，接口文档（含管理接口结构）不对外公开 | `test_api_docs_are_not_public` |
+| 管理接口口令缺失、错误、少了 `Bearer`、多了字符 | 一律 401；服务端没配口令时也一律拒绝；口令按常量时间比对 | `test_admin_endpoints_need_the_exact_token` |
+| 有人反复刷 AI 解析 | 同一来源 10 分钟最多 15 次，全站每小时最多 40 次；超限改用规则解析，不调用大模型 | `test_ai_gate_limits_per_origin_and_in_total` `test_parse_uses_rules_when_gate_says_no` |
+| 前端出现内联脚本或 `onclick=` | 测试失败（内容安全策略会让它们失效） | `test_frontend_has_no_inline_scripts_or_handlers` |
+| 仓库里出现密钥格式或本机绝对路径 | 测试失败 | `test_repo_has_no_secrets_or_personal_paths` |
 
 ## 3. 极端与合规边界
 

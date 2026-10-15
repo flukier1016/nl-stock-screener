@@ -1,0 +1,13 @@
+.git
+.venv
+.env
+.env.*
+!.env.example
+data/
+build/
+docs/demo.mp4
+docs/screenshots/
+*.key
+*.pem
+*.token
+__pycache__/

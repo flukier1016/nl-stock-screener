@@ -439,7 +439,7 @@ function tableHtml() {
     ${r.conditions.map((c, i) => `<th data-act="sort" data-col="${i}" title="${esc(c.text)}">${esc(c.metric_name)}<br><span class="muted">${esc(opText[c.op])} ${c.basis === "absolute" ? (c.op === "between" ? c.value.join("～") : c.value) : c.basis === "industry_median" ? "行业中位" : "市场中位"}</span>${arrow(i)}</th>`).join("")}
     ${gapCol ? `<th data-act="sort" data-col="gap">最大差距${arrow("gap")}</th>` : ""}</tr>`;
   const body = rows.slice(0, S.showN).map((x) => `<tr data-act="row" data-code="${esc(x.c)}">
-    <td class="l" onclick="event.stopPropagation()"><input type="checkbox" data-act="pick" data-code="${esc(x.c)}" ${S.selected.has(x.c) ? "checked" : ""}></td>
+    <td class="l" data-act="noop"><input type="checkbox" data-act="pick" data-code="${esc(x.c)}" ${S.selected.has(x.c) ? "checked" : ""}></td>
     <td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${esc(x.c)}</span></td><td class="l">${esc(x.i || "—")}</td>
     ${x.v.map((v, i) => `<td class="num">${cellHtml(v, x.s[i], x.t[i])}</td>`).join("")}
     ${gapCol ? `<td class="num">${x.g == null ? "—" : Math.round(x.g * 100) + "%"}</td>` : ""}</tr>`).join("");
@@ -563,6 +563,11 @@ function dataPanel() {
 }
 
 /* ── 事件 ─────────────────────────────────────────────── */
+// 字体样式表先按 print 加载、不阻塞首屏，加载完再启用（不用内联 onload，配合内容安全策略）
+for (const l of document.querySelectorAll("link[data-async-css]")) {
+  const on = () => { l.media = "all"; };
+  if (l.sheet) on(); else l.addEventListener("load", on, { once: true });
+}
 document.addEventListener("click", async (ev) => {
   const t = ev.target.closest("[data-act]"); if (!t) { if (ev.target.id === "scrim" || ev.target.id === "modal") closeDrawer(); return; }
   const a = t.dataset.act; const i = Number(t.dataset.i);

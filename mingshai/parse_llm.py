@@ -98,7 +98,8 @@ SYSTEM_TMPL = """你是“所以然”选股产品的意图解析器。你的唯
 """
 
 
-def parse(query: str, industries: dict[str, str]) -> ParseResult:
+def parse(query: str, industries: dict[str, str], gate=None) -> ParseResult:
+    """gate：调用大模型前的限流检查，返回原因时改用规则解析。"""
     shadow = [s.model_copy(update={"by": "rules"}) for s in _guarded(rule_parse(query, industries), industries)[0]]
     # 合规前置：整句只有预测涨跌、承诺收益、买卖建议这类内容时，规则层直接拒绝，不调用大模型
     meaningful = [s for s in shadow if s.kind != "unsupported"]
@@ -108,6 +109,8 @@ def parse(query: str, industries: dict[str, str]) -> ParseResult:
     if not llm.available():
         return ParseResult(query=query, mode="rules", segments=shadow, rules_shadow=None,
                            fallback_reason=f"{llm.unavailable_reason()}，使用规则解析")
+    if gate is not None and (why := gate()):
+        return ParseResult(query=query, mode="rules", segments=shadow, fallback_reason=f"{why}，使用规则解析")
     system = SYSTEM_TMPL.format(catalog=_catalog_text(sorted(industries)))
     try:
         data, info = llm.complete_json(system, f"用户原话：{query}", SCHEMA)
