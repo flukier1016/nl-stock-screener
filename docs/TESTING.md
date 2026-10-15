@@ -5,7 +5,7 @@
 .venv/bin/python eval/run_eval.py     # 意图解析评测（规则）；加 --llm 同时评测大模型
 ```
 
-当前结果：**59 passed**；意图解析评测：规则 25/33，Claude 32/33（详见 `eval/results/`）。
+当前结果：**60 passed**；意图解析评测：规则 25/33，Claude 32/33（详见 `eval/results/`）。
 
 ## 1. 主链路
 
@@ -45,6 +45,7 @@
 |---|---|---|
 | “明天会涨停的股票” | 拒绝（预测未来涨跌），并给出可验证的替代说法；只剩拒绝片段时不生成任何条件 | `test_rules_refuse` `test_only_refused_query` |
 | “稳赚不赔的”“推荐我买哪只”“目标价多少” | 分别按收益承诺、直接买卖建议、价格预测拒绝 | `test_rules_refuse` |
+| 整句只有预测 / 承诺 / 建议类内容 | 规则层直接拒绝，大模型不会被调用（合规前置） | `test_pure_refusal_never_reaches_llm` |
 | AI 白话解读里出现找不到出处的数字或买卖建议 | 整段丢弃，展示原因与草稿，改用模板摘要 | `test_number_guard` `test_compliance_guard` |
 | 同一指标要求互斥（60 日涨幅 ≥ 30% 且 ≤ 20%） | 标记“冲突”，筛选结果必然为 0 | `test_interval_conflict_detected` |
 | 同时要求大盘股和小盘股 | 标记“冲突”，先按第一个处理并提示确认 | `test_compile_flags_conflicting_universes` |
