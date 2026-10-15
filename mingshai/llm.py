@@ -113,8 +113,10 @@ def _anthropic(c: dict, system: str, user: str, schema: dict | None, max_tokens:
     if schema is not None:
         output_config["format"] = {"type": "json_schema", "schema": schema}
     try:
+        # 系统提示词（口径目录 + 行业表）每次相同，放在缓存断点前；用户原话放在后面
         resp = client.beta.messages.create(
-            model=c["model"], max_tokens=max_tokens, system=system,
+            model=c["model"], max_tokens=max_tokens,
+            system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": user}],
             output_config=output_config,
             betas=["server-side-fallback-2026-07-01"], fallbacks="default",
@@ -131,7 +133,8 @@ def _anthropic(c: dict, system: str, user: str, schema: dict | None, max_tokens:
         raise LLMError("大模型输出被截断")
     text = next((b.text for b in resp.content if b.type == "text"), "")
     return text, {"provider": "anthropic", "model": resp.model,
-                  "input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens}
+                  "input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens,
+                  "cache_read_tokens": getattr(resp.usage, "cache_read_input_tokens", None)}
 
 
 def _openai_compat(c: dict, system: str, user: str, max_tokens: int, json_mode: bool = True) -> tuple[str, dict]:

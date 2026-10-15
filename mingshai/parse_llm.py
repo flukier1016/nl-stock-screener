@@ -34,7 +34,7 @@ SCHEMA = {
                     "concept_id": {"type": ["string", "null"]},
                     "option_id": {"type": ["string", "null"]},
                     "metric": {"type": ["string", "null"]},
-                    "op": {"type": ["string", "null"], "enum": ["<=", ">=", "<", ">", "between", None]},
+                    "op": {"anyOf": [{"type": "string", "enum": ["<=", ">=", "<", ">", "between"]}, {"type": "null"}]},
                     "value": {"type": ["number", "null"]},
                     "value_hi": {"type": ["number", "null"]},
                     "basis": {"type": "string", "enum": ["absolute", "industry_median", "market_median"]},

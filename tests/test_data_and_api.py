@@ -248,3 +248,20 @@ def test_admin_snapshot_upload_requires_token_and_valid_file(client, monkeypatch
     r = client.post("/api/admin/snapshot?kind=snapshot", content=b"not a duckdb file",
                     headers={"Authorization": "Bearer t0k"})
     assert r.status_code == 400
+
+
+def test_llm_schema_has_no_nullable_enums():
+    """结构化输出不接受"枚举里混 null"的写法（实测 400），可空枚举必须写成 anyOf。"""
+    from mingshai.parse_llm import SCHEMA
+
+    def walk(node):
+        if isinstance(node, dict):
+            if "enum" in node:
+                assert all(isinstance(v, str) for v in node["enum"]), node
+                assert node.get("type") in (None, "string"), node
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+    walk(SCHEMA)
