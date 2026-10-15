@@ -396,6 +396,48 @@ def admin_build(request: Request, refresh: bool = False, authorization: str | No
     return {"started": started, "build": _build_state()}
 
 
+MAX_UPLOAD = 200 * 1024 * 1024
+_REQUIRED_TABLES = {"snapshot": {"features", "meta"}, "work": {"raw_fin", "raw_income"}}
+
+
+@app.post("/api/admin/snapshot")
+async def admin_upload(request: Request, kind: str = "snapshot", authorization: str | None = Header(None)):
+    """运维用：上传本地构建好的快照（或取数工作库），校验表结构后原子替换。需要管理口令。"""
+    token = os.getenv("MINGSHAI_ADMIN_TOKEN")
+    if not token or authorization != f"Bearer {token}":
+        raise HTTPException(401, detail={"message": "需要管理口令"})
+    if kind not in _REQUIRED_TABLES:
+        raise HTTPException(400, detail={"message": "kind 只能是 snapshot 或 work"})
+    body = await request.body()
+    if not body or len(body) > MAX_UPLOAD:
+        raise HTTPException(413, detail={"message": "文件为空或超过 200MB"})
+    from .data.build import WORK
+    from .store import DATA_DIR, SNAPSHOT_PATH
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = DATA_DIR / f"{kind}.upload.tmp"
+    tmp.write_bytes(body)
+    try:
+        import duckdb
+        con = duckdb.connect(str(tmp), read_only=True)
+        tables = {r[0] for r in con.execute("SELECT table_name FROM information_schema.tables").fetchall()}
+        rows = con.execute("SELECT COUNT(*) FROM features").fetchone()[0] if kind == "snapshot" else None
+        con.close()
+    except Exception as e:  # noqa: BLE001
+        tmp.unlink(missing_ok=True)
+        raise HTTPException(400, detail={"message": f"不是有效的 DuckDB 文件：{e}"}) from e
+    missing = _REQUIRED_TABLES[kind] - tables
+    if missing or (kind == "snapshot" and rows < 50):
+        tmp.unlink(missing_ok=True)
+        raise HTTPException(400, detail={"message": f"表结构不完整：缺 {sorted(missing)}，或股票数过少"})
+    os.replace(tmp, SNAPSHOT_PATH if kind == "snapshot" else WORK)
+    if kind == "snapshot":
+        store.reload()
+        _cache.clear()
+    ds = store.get()
+    return {"ok": True, "kind": kind, "bytes": len(body), "snapshot_id": ds.snapshot_id if ds else None,
+            "load_error": store.load_error}
+
+
 def _start_build(refresh: bool = False) -> bool:
     if not _build_lock.acquire(blocking=False):
         return False

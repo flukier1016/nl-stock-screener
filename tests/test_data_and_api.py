@@ -239,3 +239,12 @@ def test_growth_from_income_statement_amounts():
     assert a["roe_ann"] == pytest.approx(12.0) and a["gm_delta"] == pytest.approx(2.0)
     b = df.iloc[1]
     assert np.isnan(b["rev_yoy"]) and np.isnan(b["rev_yoy_accel"]) and np.isnan(b["np_yoy"])  # 分母为 0 记缺失
+
+
+def test_admin_snapshot_upload_requires_token_and_valid_file(client, monkeypatch, tmp_path):
+    monkeypatch.setenv("MINGSHAI_ADMIN_TOKEN", "t0k")
+    r = client.post("/api/admin/snapshot?kind=snapshot", content=b"x")
+    assert r.status_code == 401
+    r = client.post("/api/admin/snapshot?kind=snapshot", content=b"not a duckdb file",
+                    headers={"Authorization": "Bearer t0k"})
+    assert r.status_code == 400
