@@ -1,0 +1,44 @@
+[project]
+name = "nl-stock-screener"
+version = "0.1.0"
+description = "明筛：自然语言选股与策略解释器。大模型只把话翻译成条件，确定性引擎出结果，每个数字回到扶摇原始字段。"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "httpx>=0.27",
+    "duckdb>=1.1",
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "pyarrow>=16",
+    "python-dotenv>=1.0",
+    "anthropic>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mingshai"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q --tb=short"
+markers = [
+    "llm: 调用真实大模型（默认跳过：-m 'not llm'）",
+    "live: 调用真实扶摇接口（默认跳过：-m 'not live'）",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+ignore = ["E501"]

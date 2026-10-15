@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>明筛 · 自然语言选股与策略解释器</title>
+<meta name="description" content="把模糊的选股想法变成看得见、改得动、查得到出处的数据条件。大模型只翻译，确定性引擎出结果，数据来自同花顺金融数据 API（扶摇）。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8102e'/%3E%3Ctext x='16' y='22' font-size='17' text-anchor='middle' fill='white' font-family='sans-serif'%3E筛%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">筛</span>
+    <div>
+      <div class="brand-name">明筛</div>
+      <div class="brand-sub">每个条件看得见，每个数字有出处</div>
+    </div>
+  </div>
+  <div class="top-status" id="topStatus"></div>
+</header>
+<div id="banner"></div>
+<main class="wrap">
+  <section class="card" id="stepInput"></section>
+  <section class="card hidden" id="stepUnderstand"></section>
+  <section class="card hidden" id="stepConditions"></section>
+  <section class="card hidden" id="stepResults"></section>
+  <section class="card" id="stepSaved"></section>
+</main>
+<footer class="foot">
+  <p><b>合规声明</b>：明筛只按你设定的条件筛选并解释公开数据，不预测涨跌、不承诺收益、不构成任何买卖建议。历史数据和当期财务指标不代表未来表现。</p>
+  <p>数据来源：同花顺金融数据 API（扶摇）。所有筛选数字由确定性引擎计算，大模型只负责把自然语言翻译成条件、以及在守门器约束下写白话解读。<span id="footVersion"></span></p>
+</footer>
+<aside class="drawer" id="drawer" aria-hidden="true"><div class="drawer-inner" id="drawerInner"></div></aside>
+<div class="scrim" id="scrim"></div>
+<div class="modal hidden" id="modal"><div class="modal-inner" id="modalInner"></div></div>
+<div class="toast" id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
