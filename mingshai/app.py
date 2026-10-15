@@ -429,12 +429,13 @@ def _scheduler():
     while True:
         time.sleep(600)
         now = datetime.now(bj)
+        cutoff = now.replace(hour=16, minute=30, second=0, microsecond=0)   # 收盘后行情导出大致就绪
         ds = store.get()
         try:
-            built = datetime.fromisoformat(ds.meta["built_at"]).astimezone(bj).date() if ds else None
+            built = datetime.fromisoformat(ds.meta["built_at"]).astimezone(bj) if ds else None
         except (KeyError, ValueError):
             built = None
-        if now.weekday() < 5 and (now.hour, now.minute) >= (16, 30) and built != now.date():
+        if now.weekday() < 5 and now >= cutoff and (built is None or built < cutoff):
             _start_build(refresh=True)
 
 

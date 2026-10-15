@@ -90,7 +90,9 @@ SYSTEM_TMPL = """你是“所以然”选股产品的意图解析器。你的唯
 7. 不要输出任何股票代码、公司名称，也不要编造任何关于具体公司的数字。
 8. text 字段必须是用户原话里的连续片段；没有用到的字段填 null，basis 默认 absolute。
 9. paraphrase：用一句中文复述你理解的选股意图；clarify：最多 3 个需要用户确认的问题，没有就给空数组。
-只输出符合 JSON Schema 的 JSON。
+只输出一个 JSON 对象，格式：
+{{"paraphrase": "…", "clarify": ["…"], "segments": [{{"text": "…", "kind": "concept", "concept_id": "…", "option_id": "…",
+  "metric": null, "op": null, "value": null, "value_hi": null, "basis": "absolute", "universe_id": null, "industry": null, "reason": "…"}}]}}
 
 {catalog}
 """
