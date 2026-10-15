@@ -4,10 +4,11 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT_DIR="${1:-$HOME/Desktop}"
+mkdir -p "$OUT_DIR" && OUT_DIR="$(cd "$OUT_DIR" && pwd)"
 STAMP="$(date +%Y%m%d-%H%M)"
 NAME="所以然_一句话选股_提交材料_${STAMP}"
 WORK="$(mktemp -d)/${NAME}"
-mkdir -p "$WORK/docs" "$WORK/eval" "$WORK/screenshots"
+mkdir -p "$WORK/eval" "$WORK/screenshots"
 
 cp "$ROOT/docs/提交说明.md" "$WORK/00_提交说明.md"
 cp "$ROOT/README.md" "$WORK/01_README.md"
@@ -21,7 +22,16 @@ ls "$ROOT/eval/results/"*.json >/dev/null 2>&1 && cp "$ROOT/eval/results/"*.json
 git -C "$ROOT" archive --format=zip --prefix=nl-stock-screener/ -o "$WORK/05_源码快照.zip" HEAD
 
 mkdir -p "$OUT_DIR"
-( cd "$(dirname "$WORK")" && zip -qr "$OUT_DIR/${NAME}.zip" "$NAME" )
+# 用 Python 打包：文件名带 UTF-8 标记，Windows 解压中文名不乱码
+python3 - "$(dirname "$WORK")" "$NAME" "$OUT_DIR/${NAME}.zip" <<'PY'
+import os, sys, zipfile
+base, name, dest = sys.argv[1:4]
+with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
+    for root, _, files in os.walk(os.path.join(base, name)):
+        for f in sorted(files):
+            full = os.path.join(root, f)
+            z.write(full, os.path.relpath(full, base))
+PY
 SIZE=$(du -m "$OUT_DIR/${NAME}.zip" | cut -f1)
 echo "已生成：$OUT_DIR/${NAME}.zip（${SIZE} MB）"
 [ "$SIZE" -le 30 ] || { echo "超过 30MB，请压缩演示视频后重打包" >&2; exit 1; }
