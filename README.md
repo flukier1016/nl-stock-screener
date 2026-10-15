@@ -139,7 +139,7 @@ cp .env.example .env          # 填扶摇 Key 文件路径；大模型可选
 
 ## 7. 测试与评测
 
-- `pytest`：60 个用例，覆盖主链路、数据缺失与接口失败、合规拒绝、冲突、可复现性等，详见 [docs/TESTING.md](docs/TESTING.md)。
+- `pytest`：59 个用例，覆盖主链路、数据缺失与接口失败、合规拒绝、冲突、可复现性等，详见 [docs/TESTING.md](docs/TESTING.md)。
 - `eval/run_eval.py`：33 句意图解析评测（标准说法、口语、写明数字、行业、股票池、拒绝、无法识别）。
   规则 25/33（口语 0/6），Claude `claude-opus-5-5` 32/33（口语 6/6），逐条分析见 [docs/AI_USAGE.md](docs/AI_USAGE.md)。
 
