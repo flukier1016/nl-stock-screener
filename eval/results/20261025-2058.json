@@ -1,0 +1,1312 @@
+{
+ "snapshot": "20261015-0147",
+ "industries": 90,
+ "results": [
+  {
+   "mode": "rules",
+   "n": 33,
+   "pass": 26,
+   "pass_rate": 0.788,
+   "by_tag": {
+    "常规": "25/26",
+    "口语": "1/6",
+    "英文": "0/1"
+   },
+   "rows": [
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:op_improve",
+      "concept:val_fair",
+      "concept:px_stable"
+     ],
+     "segments": [
+      {
+       "text": "经营改善",
+       "kind": "concept",
+       "concept_id": "op_improve",
+       "option_id": "growth_up",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "估值合理",
+       "kind": "concept",
+       "concept_id": "val_fair",
+       "option_id": "ind_pe",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "走势相对稳定",
+       "kind": "concept",
+       "concept_id": "px_stable",
+       "option_id": "vol_mdd",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "canon",
+     "q": "经营改善、估值合理、走势相对稳定",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:op_improve",
+      "concept:val_fair",
+      "concept:px_stable"
+     ],
+     "segments": [
+      {
+       "text": "业绩改善",
+       "kind": "concept",
+       "concept_id": "op_improve",
+       "option_id": "growth_up",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "估值不贵",
+       "kind": "concept",
+       "concept_id": "val_fair",
+       "option_id": "ind_pe",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "波动小",
+       "kind": "concept",
+       "concept_id": "px_stable",
+       "option_id": "vol_mdd",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "canon2",
+     "q": "找一些业绩改善、估值不贵、波动小的公司",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:",
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "业绩越来越好",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "价格不算贵",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "股价别太折腾",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "colloq1",
+     "q": "业绩越来越好，价格不算贵，股价别太折腾",
+     "tag": "口语",
+     "ms": 30
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "公司越来越赚钱",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "而且不怎么借钱",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "colloq2",
+     "q": "公司越来越赚钱，而且不怎么借钱",
+     "tag": "口语",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "unsupported": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:",
+      "concept:px_stable",
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "每年分钱",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "多年分红稳定性需要逐年分红记录，不能用近12个月股息率替代。请明确改用股息率，或移除这项要求后重新解析。",
+       "by": "rules"
+      },
+      {
+       "text": "股价也",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "比较稳",
+       "kind": "concept",
+       "concept_id": "px_stable",
+       "option_id": "vol_mdd",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "老牌公司",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "colloq3",
+     "q": "每年分钱多、股价也比较稳的老牌公司",
+     "tag": "口语",
+     "ms": 30
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "concept:growth_high",
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "收入和利润都在",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "高速增长",
+       "kind": "concept",
+       "concept_id": "growth_high",
+       "option_id": "g20",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "但别是追高",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "colloq4",
+     "q": "收入和利润都在高速增长的成长股，但别是追高的",
+     "tag": "口语",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:div_high",
+      "concept:px_stable",
+      "universe:cap_large"
+     ],
+     "segments": [
+      {
+       "text": "高股息",
+       "kind": "concept",
+       "concept_id": "div_high",
+       "option_id": "dy3",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "低波动",
+       "kind": "concept",
+       "concept_id": "px_stable",
+       "option_id": "vol_mdd",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "大盘股",
+       "kind": "universe",
+       "concept_id": "cap_large",
+       "basis": "absolute",
+       "universe_id": "hs300",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "div_big",
+     "q": "高股息、低波动的大盘股",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:growth_high",
+      "unsupported:",
+      "universe:cap_small"
+     ],
+     "segments": [
+      {
+       "text": "高成长",
+       "kind": "concept",
+       "concept_id": "growth_high",
+       "option_id": "g20",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "但估值又低",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "小盘股",
+       "kind": "universe",
+       "concept_id": "cap_small",
+       "basis": "absolute",
+       "universe_id": "zz1000",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "small_growth",
+     "q": "高成长但估值又低的小盘股",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "universe:zz500",
+      "concept:cash_good"
+     ],
+     "segments": [
+      {
+       "text": "中证500",
+       "kind": "universe",
+       "basis": "absolute",
+       "universe_id": "zz500",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "现金流好",
+       "kind": "concept",
+       "concept_id": "cash_good",
+       "option_id": "cc100",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "mid",
+     "q": "中证500里现金流好的",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_extra_explicit": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "industry:银行",
+      "explicit:pb_mrq",
+      "explicit:div_yield"
+     ],
+     "segments": [
+      {
+       "text": "银行股",
+       "kind": "industry",
+       "basis": "absolute",
+       "industry": "银行",
+       "industry_code": "881155.TI",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "市净率低于1倍",
+       "kind": "explicit",
+       "metric": "pb_mrq",
+       "op": "<",
+       "value": 1.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "股息率5%以上",
+       "kind": "explicit",
+       "metric": "div_yield",
+       "op": ">=",
+       "value": 5.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "bank",
+     "q": "银行股里市净率低于1倍、股息率5%以上的",
+     "tag": "",
+     "ms": 32
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "explicit": true,
+      "no_extra_explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:roe_ann",
+      "explicit:debt_ratio",
+      "concept:cash_good"
+     ],
+     "segments": [
+      {
+       "text": "roe大于15%",
+       "kind": "explicit",
+       "metric": "roe_ann",
+       "op": ">",
+       "value": 15.0,
+       "basis": "absolute",
+       "reason": "按“年化 ROE（中报 × 2）”理解",
+       "by": "rules"
+      },
+      {
+       "text": "负债率不超过40%",
+       "kind": "explicit",
+       "metric": "debt_ratio",
+       "op": "<=",
+       "value": 40.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "现金流好",
+       "kind": "concept",
+       "concept_id": "cash_good",
+       "option_id": "cc100",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "roe_debt",
+     "q": "ROE大于15%、负债率不超过40%、现金流好的公司",
+     "tag": "",
+     "ms": 33
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_extra_explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:pe_ttm",
+      "explicit:pe_ttm"
+     ],
+     "segments": [
+      {
+       "text": "pe在10到20倍之间",
+       "kind": "explicit",
+       "metric": "pe_ttm",
+       "op": "between",
+       "value": [
+        10.0,
+        20.0
+       ],
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "不要亏损的",
+       "kind": "explicit",
+       "metric": "pe_ttm",
+       "op": ">",
+       "value": 0.0,
+       "basis": "absolute",
+       "reason": "“不要亏损”= 市盈率(TTM) 为正",
+       "by": "rules"
+      }
+     ],
+     "id": "pe_range",
+     "q": "PE在10到20倍之间、不要亏损的",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_extra_explicit": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:pe_ttm",
+      "industry:白酒"
+     ],
+     "segments": [
+      {
+       "text": "市盈率低于15倍",
+       "kind": "explicit",
+       "metric": "pe_ttm",
+       "op": "<",
+       "value": 15.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "白酒",
+       "kind": "industry",
+       "basis": "absolute",
+       "industry": "白酒",
+       "industry_code": "881273.TI",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "pe_low",
+     "q": "市盈率低于15倍的白酒公司",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_extra_explicit": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:pb_mrq",
+      "industry:证券"
+     ],
+     "segments": [
+      {
+       "text": "破净",
+       "kind": "explicit",
+       "metric": "pb_mrq",
+       "op": "between",
+       "value": [
+        0.0,
+        1.0
+       ],
+       "basis": "absolute",
+       "reason": "“破净”= 市净率在 0～1 倍之间",
+       "by": "rules"
+      },
+      {
+       "text": "券商",
+       "kind": "industry",
+       "basis": "absolute",
+       "industry": "证券",
+       "industry_code": "881157.TI",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "pb_break",
+     "q": "破净的券商",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_extra_explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:rev_yoy",
+      "explicit:np_yoy"
+     ],
+     "segments": [
+      {
+       "text": "营收增速超过30%",
+       "kind": "explicit",
+       "metric": "rev_yoy",
+       "op": ">",
+       "value": 30.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "净利润增长不低于20%",
+       "kind": "explicit",
+       "metric": "np_yoy",
+       "op": ">=",
+       "value": 20.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "growth_num",
+     "q": "营收增速超过30%、净利润增长不低于20%",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "industries": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:liquid",
+      "concept:mom_up",
+      "industry:半导体"
+     ],
+     "segments": [
+      {
+       "text": "成交活跃",
+       "kind": "concept",
+       "concept_id": "liquid",
+       "option_id": "amt1",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "走势偏强",
+       "kind": "concept",
+       "concept_id": "mom_up",
+       "option_id": "r60",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "半导体",
+       "kind": "industry",
+       "basis": "absolute",
+       "industry": "半导体",
+       "industry_code": "881121.TI",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "liquid",
+     "q": "成交活跃、走势偏强的半导体",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "concept:mom_up",
+      "concept:not_hot"
+     ],
+     "segments": [
+      {
+       "text": "走势强",
+       "kind": "concept",
+       "concept_id": "mom_up",
+       "option_id": "r60",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "涨幅不大",
+       "kind": "concept",
+       "concept_id": "not_hot",
+       "option_id": "r60_20",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "mom_hot",
+     "q": "走势强但涨幅不大的",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "unsupported": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "分红稳定",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "多年分红稳定性需要逐年分红记录，不能用近12个月股息率替代。请明确改用股息率，或移除这项要求后重新解析。",
+       "by": "rules"
+      }
+     ],
+     "id": "stable_div",
+     "q": "分红稳定",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "excludes": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "exclude:st",
+      "exclude:new",
+      "concept:debt_low"
+     ],
+     "segments": [
+      {
+       "text": "剔除st",
+       "kind": "exclude",
+       "metric": "st",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "次新股",
+       "kind": "exclude",
+       "metric": "new",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "财务稳健",
+       "kind": "concept",
+       "concept_id": "debt_low",
+       "option_id": "d50_cr15",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "excl",
+     "q": "剔除ST和次新股，财务稳健的公司",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "explicit": true,
+      "no_extra_explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:gross_margin",
+      "concept:roe_high"
+     ],
+     "segments": [
+      {
+       "text": "毛利率高于40%",
+       "kind": "explicit",
+       "metric": "gross_margin",
+       "op": ">",
+       "value": 40.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "盈利能力强",
+       "kind": "concept",
+       "concept_id": "roe_high",
+       "option_id": "roe15",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "margin",
+     "q": "毛利率高于40%、盈利能力强",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_extra_explicit": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:vol_60d",
+      "explicit:mdd_120d"
+     ],
+     "segments": [
+      {
+       "text": "年化波动率25%以下",
+       "kind": "explicit",
+       "metric": "vol_60d",
+       "op": "<=",
+       "value": 25.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "最大回撤不超过10%",
+       "kind": "explicit",
+       "metric": "mdd_120d",
+       "op": "<=",
+       "value": 10.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "vol_num",
+     "q": "年化波动率25%以下、最大回撤不超过10%",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "explicit": true,
+      "no_extra_explicit": true,
+      "universe": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "explicit:amt_20d",
+      "universe:hs300",
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "日均成交额5亿以上",
+       "kind": "explicit",
+       "metric": "amt_20d",
+       "op": ">=",
+       "value": 5.0,
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "沪深300",
+       "kind": "universe",
+       "basis": "absolute",
+       "universe_id": "hs300",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "成分股",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "amt_num",
+     "q": "日均成交额5亿以上的沪深300成分股",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "refused": true
+     },
+     "got": [
+      "refused:"
+     ],
+     "segments": [
+      {
+       "text": "明天会涨停",
+       "kind": "refused",
+       "basis": "absolute",
+       "reason": "预测未来涨跌",
+       "by": "rules"
+      }
+     ],
+     "id": "ref1",
+     "q": "明天会涨停的股票",
+     "tag": "",
+     "ms": 28
+    },
+    {
+     "pass": true,
+     "checks": {
+      "industries": true,
+      "refused": true
+     },
+     "got": [
+      "refused:",
+      "industry:证券",
+      "refused:"
+     ],
+     "segments": [
+      {
+       "text": "推荐我买",
+       "kind": "refused",
+       "basis": "absolute",
+       "reason": "直接买卖建议",
+       "by": "rules"
+      },
+      {
+       "text": "券商股",
+       "kind": "industry",
+       "basis": "absolute",
+       "industry": "证券",
+       "industry_code": "881157.TI",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "稳赚",
+       "kind": "refused",
+       "basis": "absolute",
+       "reason": "收益承诺",
+       "by": "rules"
+      }
+     ],
+     "id": "ref2",
+     "q": "推荐我买哪只券商股，稳赚的那种",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "refused": true
+     },
+     "got": [
+      "unsupported:",
+      "refused:",
+      "unsupported:",
+      "refused:"
+     ],
+     "segments": [
+      {
+       "text": "茅台",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "目标价",
+       "kind": "refused",
+       "basis": "absolute",
+       "reason": "价格预测或非公开信息",
+       "by": "rules"
+      },
+      {
+       "text": "多少",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "能涨到",
+       "kind": "refused",
+       "basis": "absolute",
+       "reason": "价格预测或非公开信息",
+       "by": "rules"
+      }
+     ],
+     "id": "ref3",
+     "q": "茅台目标价多少，能涨到3000吗",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": true,
+     "checks": {
+      "universe": true,
+      "refused": true
+     },
+     "got": [
+      "refused:",
+      "universe:cap_small"
+     ],
+     "segments": [
+      {
+       "text": "下周能翻倍",
+       "kind": "refused",
+       "basis": "absolute",
+       "reason": "预测未来涨跌",
+       "by": "rules"
+      },
+      {
+       "text": "小盘股",
+       "kind": "universe",
+       "concept_id": "cap_small",
+       "basis": "absolute",
+       "universe_id": "zz1000",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "ref4",
+     "q": "下周能翻倍的小盘股",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "concepts": true,
+      "refused": true
+     },
+     "got": [
+      "concept:val_fair",
+      "refused:"
+     ],
+     "segments": [
+      {
+       "text": "估值合理",
+       "kind": "concept",
+       "concept_id": "val_fair",
+       "option_id": "ind_pe",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "明天能大涨",
+       "kind": "refused",
+       "basis": "absolute",
+       "reason": "预测未来涨跌",
+       "by": "rules"
+      }
+     ],
+     "id": "mixed_ref",
+     "q": "估值合理、明天能大涨的",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "unsupported": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "管理层靠谱",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "护城河的公司",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "unsup1",
+     "q": "管理层靠谱、有护城河的公司",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "unsupported": true,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "受益于政策利好的龙头",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "unsup2",
+     "q": "受益于政策利好的龙头",
+     "tag": "",
+     "ms": 29
+    },
+    {
+     "pass": true,
+     "checks": {
+      "universe": true,
+      "no_false_refusal": true,
+      "required_block": true
+     },
+     "got": [
+      "universe:cap_large",
+      "universe:cap_small"
+     ],
+     "segments": [
+      {
+       "text": "大盘股",
+       "kind": "universe",
+       "concept_id": "cap_large",
+       "basis": "absolute",
+       "universe_id": "hs300",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "小盘股",
+       "kind": "universe",
+       "concept_id": "cap_small",
+       "basis": "absolute",
+       "universe_id": "zz1000",
+       "reason": "",
+       "by": "rules"
+      }
+     ],
+     "id": "conflict",
+     "q": "大盘股和小盘股都要",
+     "tag": "",
+     "ms": 30
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "concept:val_low",
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "估值比同行",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "便宜",
+       "kind": "concept",
+       "concept_id": "val_low",
+       "option_id": "pe15",
+       "basis": "absolute",
+       "reason": "",
+       "by": "rules"
+      },
+      {
+       "text": "经营在变好",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "pe_ind",
+     "q": "估值比同行便宜、经营在变好",
+     "tag": "口语",
+     "ms": 29
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "利润都是真金白银收回来",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "cash_colloq",
+     "q": "利润都是真金白银收回来的",
+     "tag": "口语",
+     "ms": 29
+    },
+    {
+     "pass": false,
+     "checks": {
+      "concepts": false,
+      "no_false_refusal": true
+     },
+     "got": [
+      "unsupported:",
+      "unsupported:",
+      "unsupported:",
+      "unsupported:",
+      "unsupported:",
+      "unsupported:"
+     ],
+     "segments": [
+      {
+       "text": "low",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "pe",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "high",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "dividend",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "stable",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      },
+      {
+       "text": "price",
+       "kind": "unsupported",
+       "basis": "absolute",
+       "reason": "尚无对应的数据口径，需要改成可量化、受支持的说法",
+       "by": "rules"
+      }
+     ],
+     "id": "eng",
+     "q": "low PE, high dividend, stable price",
+     "tag": "英文",
+     "ms": 30
+    }
+   ]
+  }
+ ]
+}

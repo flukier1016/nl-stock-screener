@@ -134,6 +134,9 @@ def _build_state() -> dict | None:
 
 
 def run_cached(ds: Dataset, s: Strategy) -> dict:
+    issues = check_strategy(s, set(ds.frame["industry_code"].dropna()))
+    if any(i["severity"] == "error" for i in issues):
+        raise HTTPException(422, detail={"issues": issues, "message": "意图或条件尚未确认，暂停执行"})
     key = s.fingerprint(ds.snapshot_id) + ds.mode
     if key in _cache:
         _cache.move_to_end(key)
@@ -159,8 +162,12 @@ def _client(x_client_id: str | None) -> str:
 @app.get("/api/health")
 def health():
     ds = store.get()
-    return {"status": "ok", "version": VERSION, "snapshot_id": ds.snapshot_id if ds else None,
-            "data_ready": ds is not None, "llm": llm.public_info()}
+    info = llm.public_info()
+    degraded = ds is None or store.load_warning or info["health"]["status"] in ("auth_failed", "degraded")
+    # HTTP liveness remains 200 for deployment probes; readiness is explicit.
+    return {"status": "degraded" if degraded else "ok", "version": VERSION,
+            "snapshot_id": ds.snapshot_id if ds else None, "data_ready": ds is not None,
+            "data_warning": store.load_warning, "llm": info}
 
 
 @app.get("/api/meta")
@@ -168,12 +175,14 @@ def meta(request: Request):
     mode = _mode(request)
     ds = store.get(mode)
     out = {"version": VERSION, "llm": llm.public_info(), "catalog": catalog(), "build": _build_state(),
-           "data_ready": ds is not None, "data_mode": mode or store.mode, "load_error": store.load_error}
+           "data_ready": ds is not None, "data_mode": mode or store.mode, "load_error": store.load_error,
+           "data_warning": store.load_warning}
     if ds is not None:
         out["snapshot"] = ds.meta
         out["industries"] = sorted(ds.industries)
         out["coverage"] = ds.coverage()
         out["universe_size"] = int(len(ds.frame))
+        out["data_notes"] = _data_notes(ds)
     return out
 
 
@@ -202,7 +211,7 @@ def api_parse(body: ParseIn, request: Request):
     refused = [s for s in pr.segments if s.kind == "refused"]
     return {"parse": pr.model_dump(), "strategy": strategy.model_dump(), "assumptions": pr.assumptions + assumptions,
             "notes": notes, "refuse_hint": REFUSE_HINT if refused else None,
-            "only_refused": bool(refused) and not strategy.conditions}
+            "only_refused": bool(refused) and not strategy.conditions, "llm": llm.public_info()}
 
 
 @app.post("/api/compile")
@@ -241,7 +250,7 @@ def api_screen(body: StrategyIn, request: Request):
              "v": [r["conds"][c.id]["value"] for c in s.conditions],
              "s": [r["conds"][c.id]["status"][0] for c in s.conditions],
              "t": [r["conds"][c.id]["threshold"] for c in s.conditions],
-             "g": r["worst_gap"]} for r in res["rows"]]
+             "g": r["worst_gap"], "universe_missing": r.get("universe_missing", [])} for r in res["rows"]]
     return {
         "run_id": res["run_id"], "snapshot_id": res["snapshot_id"], "data_mode": res["data_mode"],
         "elapsed_ms": int((time.monotonic() - t0) * 1000), "conditions": conds,
@@ -250,15 +259,27 @@ def api_screen(body: StrategyIn, request: Request):
         "fail_distribution": res["fail_distribution"], "rows": rows,
         "summary": explain.summary(res, s), "relax": conflicts.relax_suggestions(res, s) if res["counts"]["passed"] < 5 else [],
         "conflicts": hints, "data_sources": ds.meta.get("sources", {}), "data_notes": _data_notes(ds),
+        "universe_unknown_count": res["universe_unknown_count"],
     }
 
 
 def _data_notes(ds: Dataset) -> list[str]:
     p = ds.meta.get("sources", {}).get("prices", {})
     last, cal = p.get("last_date"), p.get("calendar_last_trading_day")
+    notes = [n for n in ds.meta.get("notes", []) if "行情数据截至" not in n]
     if last and cal and cal > last:
-        return [f"行情更新到 {last} 收盘，{cal} 的行情还没发布。"]
-    return [n for n in ds.meta.get("notes", []) if "行情数据截至" not in n]
+        notes.append(f"行情更新到 {last} 收盘，{cal} 的行情还没发布。")
+    if last and ds.mode != "demo":
+        try:
+            bj = timezone(timedelta(hours=8))
+            age = (datetime.now(bj).date() - datetime.fromisoformat(last).date()).days
+            if age > 5:
+                notes.append(f"行情截至{last}，距今{age}天；当前使用历史快照，请核对交易日和数据更新状态。")
+        except ValueError:
+            notes.append("行情时点无法解析，请先核对数据状态。")
+    if store.load_warning and ds.mode != "demo":
+        notes.append(store.load_warning)
+    return list(dict.fromkeys(notes))
 
 
 class EvidenceIn(BaseModel):
@@ -307,6 +328,8 @@ def _universe_reasons(ds: Dataset, s: Strategy, code: str) -> list[str]:
         out.append(f"不是{u.label}成分股")
     if s.universe.industries and r.get("industry_code") not in s.universe.industries:
         out.append(f"所属行业是「{r.get('industry_name')}」，不在所选行业内")
+    if r.get("industry_code") in s.universe.excluded_industries:
+        out.append(f"所属行业「{r.get('industry_name')}」已被你剔除")
     if s.universe.exclude_st and bool(r.get("is_st")):
         out.append("带 ST 标记，默认剔除")
     if s.universe.min_listed_days and (r.get("listed_days") or 0) < s.universe.min_listed_days:
@@ -356,7 +379,7 @@ class ExplainIn(BaseModel):
 
 @app.post("/api/explain")
 def api_explain(body: ExplainIn, request: Request):
-    """AI 白话解读：只能复述引擎给出的事实，写完过数字守门和合规检查，不通过就整段丢弃。"""
+    """AI only selects fact IDs; trusted templates render all displayed text."""
     ds = dataset(_mode(request))
     res = run_cached(ds, body.strategy)
     summ = explain.summary(res, body.strategy)
@@ -364,33 +387,21 @@ def api_explain(body: ExplainIn, request: Request):
         return {"ok": False, "reason": llm.unavailable_reason(), "fallback": summ["text"]}
     if why := ai_gate.take(_origin(request)):
         return {"ok": False, "reason": why, "fallback": summ["text"]}
-    conds = "\n".join(f"- {describe(c.metric, c.op, c.value, c.basis)}（{METRICS_BY_ID[c.metric].definition}）"
-                      for c in body.strategy.conditions)
-    funnel = "\n".join(f"- 满足前 {i + 1} 条后剩 {f['count']} 只" for i, f in enumerate(res["funnel"]))
-    impact = "\n".join(f"- 去掉“{f['label']}”会多出 {i['removed_adds']} 只" for f, i in zip(res["funnel"], res["impact"], strict=True))
-    from .registry import UNIVERSES_BY_ID
-    u = UNIVERSES_BY_ID[body.strategy.universe.base]
-    pool = " → ".join(f"{x['step']} {x['count']} 只" for x in res["universe_steps"])
-    pool_note = f"（{u.note}）" if u.index_thscode else ""
-    facts = (f"用户原话：{body.strategy.query}\n股票池：{pool}{pool_note}\n条件：\n{conds}\n结果：{summ['text']}\n"
-             f"逐条漏斗：\n{funnel}\n条件影响：\n{impact}\n数据：财务 2026 中报；估值快照与行情时点见数据状态栏。")
-    system = ("你是选股结果的解说员。只能复述下面给出的事实（股票池与条件都已写明），用 3 条以内的中文短句说明：这组条件实际在筛什么、"
-              "哪一条最严、用户可以怎么调整。禁止出现任何没有在事实里给出的数字；禁止预测涨跌、承诺收益、"
-              "给出买卖建议；不要点名推荐任何股票。")
+    facts = explain.explanation_facts(res, body.strategy)
+    schema = {"type": "object", "properties": {"fact_ids": {"type": "array", "items": {"type": "string"}}},
+              "required": ["fact_ids"], "additionalProperties": False}
+    system = ("从已验证事实中选择1至3个最有助于理解结果的编号。"
+              "只返回fact_ids数组，不写句子、数字、建议，不修改事实。优先概览和影响最大的条件。")
+    import json
     try:
-        text, info = llm.complete_text(system, facts)
-    except llm.LLMError as e:
-        return {"ok": False, "reason": str(e), "fallback": summ["text"]}
-    # 守门规则：解读里出现的每个数字，都必须出现在交给它的事实材料里（含指标名里的“60 日”“2026 中报”）
-    allowed = {float(x.replace(",", "")) for x in explain._NUM_RE.findall(facts)} | set(summ["numbers"])
-    bad_nums = explain.number_guard(text, allowed)
-    bad_words = explain.compliance_guard(text)
-    if bad_nums or bad_words:
-        return {"ok": False, "blocked": True, "reason": "AI 解读未通过守门器，已丢弃",
-                "unsupported_numbers": bad_nums, "compliance_hits": bad_words, "draft": text,
-                "fallback": summ["text"], "model": info.get("model")}
-    return {"ok": True, "text": text, "model": info.get("model"), "latency_ms": info.get("latency_ms"),
-            "checked": {"numbers": "全部数字都能在引擎结果里找到", "compliance": "未出现预测、承诺或买卖建议"}}
+        selection, info = llm.complete_json(system, json.dumps(facts, ensure_ascii=False), schema, max_tokens=300,
+                                            kind="explain")
+        text, selected = explain.render_fact_selection(selection, facts)
+    except (llm.LLMError, ValueError, TypeError) as e:
+        return {"ok": False, "reason": str(e), "fallback": summ["text"], "blocked": True}
+    return {"ok": True, "text": text, "facts": selected, "model": info.get("model"),
+            "latency_ms": info.get("latency_ms"),
+            "checked": {"numbers": "指标、数值、单位、期间均由程序按事实编号回填", "compliance": "只展示预先验证的事实"}}
 
 
 # ── 保存与监控 ──────────────────────────────────────────────────────
@@ -452,6 +463,8 @@ def api_monitor_run(mid: str, request: Request, x_client_id: str | None = Header
         return monitors.run_monitor(mid, ds, run_cached, trigger="manual")
     except KeyError as e:
         raise HTTPException(404, detail={"message": str(e)}) from e
+    except ValueError as e:
+        raise HTTPException(422, detail={"message": str(e)}) from e
 
 
 # ── 数据构建（管理口令保护）与定时刷新 ──────────────────────────────────
@@ -469,8 +482,37 @@ def admin_build(request: Request, refresh: bool = False, authorization: str | No
     return {"started": started, "build": _build_state()}
 
 
+@app.post("/api/admin/repair-listings")
+def admin_repair_listings(authorization: str | None = Header(None)):
+    if not _admin_ok(authorization):
+        raise HTTPException(401, detail={"message": "需要管理口令"})
+    if not _build_lock.acquire(blocking=False):
+        raise HTTPException(409, detail={"message": "数据更新进行中，请稍后重试"})
+    try:
+        from .data.repair import repair_listings
+        result = asyncio.run(repair_listings())
+        store.reload()
+        _cache.clear()
+        return result
+    except Exception as e:
+        raise HTTPException(503, detail={"message": f"上市日期核验失败，保留原始文件：{type(e).__name__}"}) from e
+    finally:
+        _build_lock.release()
+
+
 MAX_UPLOAD = 200 * 1024 * 1024
 _REQUIRED_TABLES = {"snapshot": {"features", "meta"}, "work": {"raw_fin", "raw_income"}}
+
+
+@app.get("/api/admin/snapshot")
+def admin_download(authorization: str | None = Header(None)):
+    """Authenticated backup for diagnosis and rollback; never exposes keys or user strategies."""
+    if not _admin_ok(authorization):
+        raise HTTPException(401, detail={"message": "需要管理口令"})
+    from .store import SNAPSHOT_PATH
+    if not SNAPSHOT_PATH.is_file():
+        raise HTTPException(404, detail={"message": "没有可备份的数据快照"})
+    return FileResponse(SNAPSHOT_PATH, filename="snapshot.duckdb", media_type="application/octet-stream")
 
 
 @app.post("/api/admin/snapshot")
@@ -501,6 +543,16 @@ async def admin_upload(request: Request, kind: str = "snapshot", authorization: 
     if missing or (kind == "snapshot" and rows < 50):
         tmp.unlink(missing_ok=True)
         raise HTTPException(400, detail={"message": f"表结构不完整：缺 {sorted(missing)}，或股票数过少"})
+    if kind == "snapshot":
+        from .store import load_snapshot
+        try:
+            load_snapshot(tmp)
+        except Exception as e:
+            tmp.unlink(missing_ok=True)
+            raise HTTPException(422, detail={"message": f"快照质量不合格，保留当前数据：{e}"}) from e
+        if SNAPSHOT_PATH.exists():
+            from .data.quality import preserve_current
+            preserve_current(SNAPSHOT_PATH)
     os.replace(tmp, SNAPSHOT_PATH if kind == "snapshot" else WORK)
     if kind == "snapshot":
         store.reload()
@@ -537,6 +589,19 @@ def _scheduler():
     from .data.fuyao import load_api_key
     if not load_api_key() or os.getenv("MINGSHAI_AUTO_BUILD", "1") != "1":
         return
+    # A failed listing-date contract can be repaired using a single metadata
+    # request, without an expensive full rebuild or changing market timestamps.
+    from .store import SNAPSHOT_PATH
+    if store.load_warning and SNAPSHOT_PATH.exists() and _build_lock.acquire(blocking=False):
+        try:
+            from .data.repair import repair_listings
+            asyncio.run(repair_listings())
+            store.reload()
+            _cache.clear()
+        except Exception as e:
+            print(f"[listing-repair] 未完成核验：{type(e).__name__}", flush=True)
+        finally:
+            _build_lock.release()
     if store.get() is None:
         _start_build(refresh=False)
     bj = timezone(timedelta(hours=8))

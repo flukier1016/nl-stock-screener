@@ -1,5 +1,14 @@
 # 测试说明
 
+## 0.2版新增验收
+
+- `tests/test_reliability.py`：行业排除、OR/期间/分红稳定性拦截、严格比较符、模型未保留字面条件时降级、鉴权健康状态、事实编号绑定及全部执行入口校验。
+- `tests/test_snapshot_publication.py`：重启后选择经过验证的前驱、坏快照上传不覆盖当前文件、上市日期修复不改写市场时点、管理接口鉴权。
+- `eval/check_acceptance.py`：意图验收和手算名单；用例来源、评分边界与独立验证计划见`eval/README.md`。
+- CI在推送与PR时执行测试、离线验收、未使用导入检查和前端语法检查。
+
+下文的旧版测试数量、旧版模型评分及20261015快照结果保留为历史记录。真实线上模型调用仍需有效凭据；合成测试、Mock接口和已知回归用例不能替代用户研究或模型盲测。
+
 ```bash
 .venv/bin/python -m pytest            # 全部自动化测试（不联网：扶摇用 MockTransport，大模型用 monkeypatch）
 .venv/bin/python eval/run_eval.py     # 意图解析评测（规则）；加 --llm 同时评测大模型

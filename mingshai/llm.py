@@ -13,8 +13,11 @@ Key 只从环境变量或本地文件读，不写日志。每次调用都过总�
 from __future__ import annotations
 
 import json
+import hashlib
 import os
+import threading
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -30,13 +33,48 @@ class LLMError(Exception):
     """大模型调用失败。``cost_usd`` 是这次已经产生的花费（拒答、截断也计费）；
     ``maybe_billed`` 表示不知道是否已计费（超时、连接中断），记账时按预留额度算。"""
 
-    def __init__(self, msg: str, *, cost_usd: float | None = None, maybe_billed: bool = False, usage: dict | None = None):
+    def __init__(self, msg: str, *, cost_usd: float | None = None, maybe_billed: bool = False, usage: dict | None = None,
+                 status_code: int | None = None):
         super().__init__(msg)
         self.cost_usd, self.maybe_billed, self.usage = cost_usd, maybe_billed, usage or {}
+        self.status_code = status_code
 
 
 class BudgetError(LLMError):
     """总额度已用完，或接近上限暂时不调用。"""
+
+
+_health_lock = threading.Lock()
+_runtime_health: dict = {}
+
+
+def runtime_health() -> dict:
+    """Only a successful model request establishes health; a key file does not."""
+    c = config()
+    key = c["key"] or os.getenv("ANTHROPIC_API_KEY") or ""
+    signature = hashlib.sha256("|".join([c["provider"], c["model"], c["base_url"], key]).encode()).hexdigest()
+    with _health_lock:
+        if _runtime_health.get("signature") != signature:
+            _runtime_health.clear()
+            configured = c["provider"] != "off" and bool(key)
+            _runtime_health.update(signature=signature, status="unverified" if configured else "off",
+                                   message="已配置，等待首次调用验证" if configured else "未配置模型，按规则解析")
+        if _runtime_health.get("retry_after", 0) <= time.monotonic() and _runtime_health["status"] == "degraded":
+            _runtime_health.update(status="unverified", message="等待重试验证")
+        return {k: v for k, v in _runtime_health.items() if k not in ("signature", "retry_after")}
+
+
+def _record_health(error: LLMError | None = None) -> None:
+    runtime_health()
+    with _health_lock:
+        _runtime_health["checked_at"] = datetime.now(UTC).isoformat(timespec="seconds")
+        if error is None:
+            _runtime_health.update(status="healthy", message="最近一次模型调用成功")
+        elif error.status_code in (401, 403):
+            _runtime_health.update(status="auth_failed", message="AI 鉴权失败，已停用模型调用；修复配置后恢复")
+        else:
+            _runtime_health.update(status="degraded", message="AI 暂时不可用，30秒后允许重试",
+                                   retry_after=time.monotonic() + 30)
 
 
 def _read_key() -> str | None:
@@ -71,6 +109,8 @@ def available() -> bool:
     if budget.LEDGER.status()["disabled"]:
         return False
     c = config()
+    if runtime_health()["status"] in ("auth_failed", "degraded"):
+        return False
     if c["provider"] == "anthropic":
         return bool(c["key"] or os.getenv("ANTHROPIC_API_KEY"))
     if c["provider"] == "openai_compat":
@@ -80,7 +120,10 @@ def available() -> bool:
 
 def unavailable_reason() -> str:
     st = budget.LEDGER.status()
-    return (st["reason"] or "AI 额度已用完") if st["disabled"] else "未配置大模型"
+    if st["disabled"]:
+        return st["reason"] or "AI 额度已用完"
+    h = runtime_health()
+    return h["message"] if h["status"] in ("auth_failed", "degraded") else "未配置大模型"
 
 
 def _key_source() -> str:
@@ -94,7 +137,7 @@ def _key_source() -> str:
 def public_info() -> dict:
     c = config()
     return {"provider": c["provider"], "model": c["model"] or None, "available": available(),
-            "key_source": _key_source(), "budget": budget.LEDGER.status()}
+            "key_source": _key_source(), "budget": budget.LEDGER.status(), "health": runtime_health()}
 
 
 def prepare_key() -> dict:
@@ -140,25 +183,28 @@ def _call(kind: str, system: str, user: str, schema: dict | None, max_tokens: in
         else:
             text, info = _openai_compat(c, system, user, max_tokens, json_mode=schema is not None)
     except LLMError as e:
+        _record_health(e)
         cost = e.cost_usd if e.cost_usd is not None else (worst if e.maybe_billed else 0.0)
         budget.LEDGER.settle(hold, cost, {**row, "outcome": "error", "error": str(e)[:80], **e.usage})
         raise
     except Exception as e:  # noqa: BLE001 —— 意外异常不知道是否已计费，按预留额度记
+        _record_health(LLMError("模型调用异常"))
         budget.LEDGER.settle(hold, worst, {**row, "outcome": "exception", "error": type(e).__name__})
         raise LLMError(f"大模型调用异常：{type(e).__name__}") from e
     info["latency_ms"] = int((time.monotonic() - t0) * 1000)
+    _record_health()
     budget.LEDGER.settle(hold, info["cost_usd"], {**row, "outcome": "ok", "model": info.get("model"),
                                                   **{k: info.get(k) for k in _USAGE_KEYS if k in info}})
     return text, info
 
 
-def complete_json(system: str, user: str, schema: dict, max_tokens: int = 4000) -> tuple[dict, dict]:
+def complete_json(system: str, user: str, schema: dict, max_tokens: int = 4000, *, kind: str = "parse") -> tuple[dict, dict]:
     """返回 (解析后的 JSON, 调用信息)。失败抛 LLMError，由调用方决定兜底。"""
-    text, info = _call("parse", system, user, schema, max_tokens)
+    text, info = _call(kind, system, user, schema, max_tokens)
     try:
         return json.loads(_strip_fence(text)), info
     except json.JSONDecodeError as e:
-        raise LLMError(f"大模型返回的不是合法 JSON：{e}；前 120 字：{text[:120]!r}") from e
+        raise LLMError("大模型返回的不是合法 JSON，已放弃该输出") from e
 
 
 def complete_text(system: str, user: str, max_tokens: int = 1200) -> tuple[str, dict]:
@@ -199,7 +245,8 @@ def _anthropic(c: dict, system: str, user: str, schema: dict | None, max_tokens:
                 continue
             if isinstance(e, anthropic.RateLimitError):
                 raise LLMError("大模型限流，请稍后再试") from e
-            raise LLMError(f"大模型接口错误 {e.status_code}：{getattr(e, 'message', '')[:160]}") from e
+            raise LLMError(f"大模型接口错误 {e.status_code}，请检查服务配置或稍后再试",
+                           status_code=e.status_code) from e
         except anthropic.APITimeoutError as e:
             raise LLMError("大模型响应超时", maybe_billed=True) from e
         except anthropic.APIConnectionError as e:
@@ -226,7 +273,7 @@ def _openai_compat(c: dict, system: str, user: str, max_tokens: int, json_mode: 
     except httpx.HTTPError as e:
         raise LLMError(f"连不上大模型接口：{type(e).__name__}", maybe_billed=True) from e
     if r.status_code != 200:
-        raise LLMError(f"大模型接口错误 {r.status_code}：{r.text[:160]}")
+        raise LLMError(f"大模型接口错误 {r.status_code}，请检查服务配置或稍后再试", status_code=r.status_code)
     data = r.json()
     choice = (data.get("choices") or [{}])[0]
     u = data.get("usage") or {}

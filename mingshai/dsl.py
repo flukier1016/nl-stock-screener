@@ -14,8 +14,9 @@ from pydantic import BaseModel, Field
 Op = Literal["<=", ">=", "<", ">", "between"]
 Basis = Literal["absolute", "industry_median", "market_median"]
 SegmentKind = Literal[
-    "concept", "explicit", "universe", "industry", "exclude", "unsupported", "refused",
+    "concept", "explicit", "universe", "industry", "exclude_industry", "exclude", "unsupported", "refused",
 ]
+ENGINE_VERSION = "screen-v2"
 
 
 class Condition(BaseModel):
@@ -34,9 +35,16 @@ class Condition(BaseModel):
 class UniverseSpec(BaseModel):
     base: str = "all_a"
     industries: list[str] = Field(default_factory=list)       # 同花顺行业指数 thscode，多选取并集
+    excluded_industries: list[str] = Field(default_factory=list)
     exclude_st: bool = True
     min_listed_days: int = 365
     exclude_bj: bool = False
+
+
+class IntentIssue(BaseModel):
+    code: str
+    text: str
+    message: str
 
 
 class Strategy(BaseModel):
@@ -45,6 +53,7 @@ class Strategy(BaseModel):
     universe: UniverseSpec = Field(default_factory=UniverseSpec)
     conditions: list[Condition] = Field(default_factory=list)
     near_miss_tolerance: float = 0.20
+    intent_issues: list[IntentIssue] = Field(default_factory=list)
 
     def canonical(self) -> str:
         """决定结果的部分（股票池 + 条件）的规范 JSON；名称和原话不影响结果。"""
@@ -59,7 +68,7 @@ class Strategy(BaseModel):
         return json.dumps(body, ensure_ascii=False, sort_keys=True)
 
     def fingerprint(self, snapshot_id: str) -> str:
-        raw = f"{self.canonical()}|{snapshot_id}".encode()
+        raw = f"{ENGINE_VERSION}|{self.canonical()}|{snapshot_id}".encode()
         return hashlib.sha256(raw).hexdigest()[:12]
 
 

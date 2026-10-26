@@ -19,6 +19,7 @@ import duckdb
 import pandas as pd
 
 from .data.fixture import build_fixture
+from .data.quality import require_quality
 from .registry import METRICS
 
 DATA_DIR = Path(os.getenv("MINGSHAI_DATA_DIR", Path(__file__).resolve().parents[1] / "data"))
@@ -55,7 +56,8 @@ def load_demo() -> Dataset:
     return Dataset(df, meta, _industries(df))
 
 
-def load_snapshot(path: Path = SNAPSHOT_PATH) -> Dataset | None:
+def load_snapshot(path: Path | None = None) -> Dataset | None:
+    path = path or SNAPSHOT_PATH
     if not path.exists():
         return None
     con = duckdb.connect(str(path), read_only=True)
@@ -67,6 +69,7 @@ def load_snapshot(path: Path = SNAPSHOT_PATH) -> Dataset | None:
     for m in METRICS:
         if m.id in df:
             df[m.id] = pd.to_numeric(df[m.id], errors="coerce")
+    require_quality(df, mode=meta.get("mode", "live"))
     return Dataset(df, meta, _industries(df))
 
 
@@ -79,6 +82,7 @@ class Store:
         self._live: Dataset | None = None
         self._demo: Dataset | None = None
         self.load_error: str | None = None
+        self.load_warning: str | None = None
 
     def reload(self) -> None:
         try:
@@ -86,8 +90,25 @@ class Store:
             with self._lock:
                 self._live = ds
             self.load_error = None if ds else "还没有真实数据快照"
+            self.load_warning = None
         except Exception as e:  # noqa: BLE001 —— 坏快照要报出来，不能当成没数据
-            self.load_error = f"快照读取失败：{e}"
+            self.load_warning = f"新快照未通过数据校验：{e}"
+            # First keep an already-validated in-memory snapshot. On restart,
+            # attempt the predecessor, applying exactly the same contract.
+            with self._lock:
+                old = self._live
+            if old is None:
+                try:
+                    old = load_snapshot(SNAPSHOT_PATH.with_suffix(".prev.duckdb"))
+                except Exception:
+                    old = None
+            with self._lock:
+                self._live = old
+            if old is not None:
+                self.load_warning += f"；继续使用上次合格快照{old.snapshot_id}，数据时点未更新。"
+                self.load_error = None
+            else:
+                self.load_error = self.load_warning + "；没有可用的合格快照，暂停真实数据筛选。"
 
     def get(self, mode: str | None = None) -> Dataset | None:
         mode = mode or self.mode

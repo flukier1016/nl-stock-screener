@@ -18,7 +18,6 @@ import argparse
 import asyncio
 import json
 import os
-import shutil
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -32,6 +31,7 @@ from ..store import DATA_DIR, SNAPSHOT_PATH
 from .features import adjusted_returns, event_sanity, price_features
 from .fixture import derive
 from .fuyao import FuyaoClient, FuyaoError, load_api_key
+from .quality import preserve_current, require_quality, resolve_listing_dates
 
 WORK = DATA_DIR / "work.duckdb"
 LEDGER = DATA_DIR / "ledger.jsonl"
@@ -135,6 +135,7 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
     tickers = pd.DataFrame(items)
     tickers = tickers[tickers["thscode"].str.match(r"^\d{6}\.(SH|SZ|BJ)$")].copy()
     tickers_ts = env["data"].get("timestamp")
+    tickers_request_id = env.get("request_id")
     if limit:
         tickers = tickers.sort_values("thscode").head(limit)
     codes = tickers["thscode"].tolist()
@@ -198,6 +199,7 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
     # 7. 合成
     st.step("合成快照")
     f = tickers.set_index("thscode")[["ticker", "name", "list_date"]].copy()
+    f["listing_request_id"] = tickers_request_id
     f["exchange"] = f.index.str[-2:]
     f["is_st"] = f["name"].fillna("").str.upper().str.contains("ST")
     f = f.join(industry, how="left")
@@ -208,7 +210,19 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
     f = f.join(inc, how="left")
     f = f.join(pf, how="left")
     pdate = pd.to_datetime(f["price_date"].fillna(as_of.strftime("%Y-%m-%d")))
-    f["listed_days"] = (pdate - pd.to_datetime(f["list_date"], errors="coerce")).dt.days
+    previous = None
+    previous_id = ""
+    from ..store import load_snapshot
+    for path in (SNAPSHOT_PATH, SNAPSHOT_PATH.with_suffix(".prev.duckdb")):
+        try:
+            previous = load_snapshot(path)
+        except Exception:
+            continue
+        if previous is not None:
+            previous_id = previous.snapshot_id
+            break
+    listing_resolution = resolve_listing_dates(f, previous.frame if previous else None, previous_id)
+    f["listed_days"] = (pdate - f["list_date"]).dt.days
     derive(f)
     for col in ("in_hs300", "in_zz500", "in_zz1000", "is_st"):
         f[col] = f[col].fillna(False).astype(bool)
@@ -232,8 +246,10 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
                        "event_sanity": sanity},
         },
         "fetch_stats": dict(cli.stats),
-        "notes": [],
+        "notes": [], "listing_resolution": listing_resolution,
     }
+    if listing_resolution["from_verified_snapshot"]:
+        meta["notes"].append(f"批量上市日期缺失，{listing_resolution['from_verified_snapshot']}只沿用已核验历史快照的上市日期；未找到历史值的新股仍记为缺失。")
     if cal_last and cal_last > as_of.strftime("%Y-%m-%d"):
         meta["notes"].append(f"行情更新到 {as_of:%Y-%m-%d} 收盘，{cal_last} 的行情还没发布。")
     _write_snapshot(f.reset_index(), meta)
@@ -474,8 +490,8 @@ async def _prices(cli: FuyaoClient, work) -> tuple[pd.DataFrame, pd.DataFrame, s
 
 
 def _write_snapshot(features: pd.DataFrame, meta: dict) -> None:
-    if len(features) < 50:
-        raise RuntimeError(f"快照只有 {len(features)} 只股票，疑似取数不完整，不替换现有快照")
+    # Validate before touching the current file or its recoverable predecessor.
+    meta["quality"] = require_quality(features, mode=meta.get("mode", "live"))
     tmp = SNAPSHOT_PATH.with_suffix(".duckdb.new")
     if tmp.exists():
         tmp.unlink()
@@ -485,8 +501,7 @@ def _write_snapshot(features: pd.DataFrame, meta: dict) -> None:
     con.execute("CREATE TABLE meta (key VARCHAR, value VARCHAR)")
     con.execute("INSERT INTO meta VALUES ('meta', ?)", [json.dumps(meta, ensure_ascii=False, default=str)])
     con.close()
-    if SNAPSHOT_PATH.exists():
-        shutil.copy2(SNAPSHOT_PATH, SNAPSHOT_PATH.with_suffix(".prev.duckdb"))
+    preserve_current(SNAPSHOT_PATH)
     os.replace(tmp, SNAPSHOT_PATH)
 
 
