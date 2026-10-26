@@ -38,6 +38,15 @@ def test_api_docs_are_not_public(client):
         assert client.get(path).status_code == 404, path
 
 
+def test_browser_receives_fingerprinted_assets_and_revalidates_old_urls(client):
+    page = client.get("/")
+    assert page.headers["Cache-Control"] == "no-store"
+    assert f"/static/app.js?v={appmod.ASSET_VERSION}" in page.text
+    assert f"/static/style.css?v={appmod.ASSET_VERSION}" in page.text
+    asset = client.get("/static/app.js")
+    assert "must-revalidate" in asset.headers["Cache-Control"]
+
+
 def test_admin_endpoints_need_the_exact_token(client, monkeypatch):
     monkeypatch.setenv("MINGSHAI_ADMIN_TOKEN", "right-token")
     for auth in (None, "Bearer wrong-token", "right-token", "Bearer right-token-x"):

@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import os
 import secrets
 import threading
@@ -18,7 +19,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -31,6 +32,7 @@ from .store import Dataset, Store
 
 VERSION = (Path(__file__).parent / "VERSION").read_text().strip()
 STATIC = Path(__file__).parent / "static"
+ASSET_VERSION = hashlib.sha256((STATIC / "app.js").read_bytes() + (STATIC / "style.css").read_bytes()).hexdigest()[:12]
 store = Store()
 store.reload()
 @asynccontextmanager
@@ -67,8 +69,10 @@ async def security_headers(request: Request, call_next):
     resp = await call_next(request)
     for k, v in SECURITY_HEADERS.items():
         resp.headers.setdefault(k, v)
-    if request.url.path.startswith("/api/"):
+    if request.url.path.startswith("/api/") or request.url.path == "/":
         resp.headers.setdefault("Cache-Control", "no-store")
+    elif request.url.path.startswith("/static/"):
+        resp.headers.setdefault("Cache-Control", "public, max-age=0, must-revalidate")
     return resp
 
 
@@ -626,4 +630,7 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 @app.get("/")
 def index():
-    return FileResponse(STATIC / "index.html")
+    html = (STATIC / "index.html").read_text(encoding="utf-8")
+    html = html.replace('/static/app.js"', f'/static/app.js?v={ASSET_VERSION}"')
+    html = html.replace('/static/style.css"', f'/static/style.css?v={ASSET_VERSION}"')
+    return HTMLResponse(html)
