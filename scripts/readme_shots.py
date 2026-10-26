@@ -1,7 +1,7 @@
 """给 README 截产品图：无界面 Chrome 打开线上站点，跑一句示例，按步骤截图（1280×800，2 倍清晰度）。
 
     .venv/bin/python scripts/readme_shots.py [--site URL]
-输出：docs/images/*.jpg。整个过程只触发一次 AI 解析（合规拒绝那句在规则层就被拦下，不调用大模型）。
+输出：docs/images/<当前版本>/*.jpg。解析方式由线上实际状态决定；合规拒绝示例在规则层处理。
 同时检查页面有没有违反内容安全策略（CSP）的报错，有就打印出来。
 """
 from __future__ import annotations
@@ -14,7 +14,8 @@ from urllib.parse import quote
 from playwright.async_api import Page, async_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "docs/images"
+VERSION = (ROOT / "mingshai/VERSION").read_text().strip()
+OUT = ROOT / "docs/images" / f"v{VERSION}"
 QUERY = "经营改善、估值合理、走势相对稳定"
 
 

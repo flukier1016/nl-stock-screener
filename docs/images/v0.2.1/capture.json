@@ -1,0 +1,152 @@
+{
+  "application_version": "0.2.1",
+  "source": "https://mingshai-production.up.railway.app/",
+  "captured_via": "cua_repl browser screenshots",
+  "parser_mode": "rules; model authentication currently fails",
+  "data_snapshot": "20261023-1637-listing-cache-repair",
+  "market_date": "2026-10-23",
+  "valuation_as_of": "2026-10-23 16:33",
+  "listing_date_cache_source": "20261015-0147",
+  "screenshots": [
+    {
+      "file": "results.jpg",
+      "captured_at": "2026-10-26T03:07:35.210Z",
+      "url": "https://mingshai-production.up.railway.app/?v=readme-0.2.1&q=%E7%BB%8F%E8%90%A5%E6%94%B9%E5%96%84%E3%80%81%E4%BC%B0%E5%80%BC%E5%90%88%E7%90%86%E3%80%81%E8%B5%B0%E5%8A%BF%E7%9B%B8%E5%AF%B9%E7%A8%B3%E5%AE%9A&run=1",
+      "note": "线上原始结果，保留数据时点、缓存来源、分组与条件影响",
+      "mode": "日间",
+      "status": "扶摇快照\n20261023-1637-listing-cache-repair\n行情\n2026-10-23\n估值\n2026-10-23 16:33\n财务 2026 中报\n规则解析\n源码",
+      "version": "版本 0.2.1。",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      },
+      "query": "经营改善、估值合理、走势相对稳定",
+      "sha256": "46bf724d215d9f7a64694fe4ad41d5edf4fea8bea50caac4e228a499f3a28a6b",
+      "bytes": 101242,
+      "image_pixels": {
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "file": "understand.jpg",
+      "captured_at": "2026-10-26T03:08:15.884Z",
+      "url": "https://mingshai-production.up.railway.app/?v=readme-0.2.1&q=%E7%BB%8F%E8%90%A5%E6%94%B9%E5%96%84%E3%80%81%E4%BC%B0%E5%80%BC%E5%90%88%E7%90%86%E3%80%81%E8%B5%B0%E5%8A%BF%E7%9B%B8%E5%AF%B9%E7%A8%B3%E5%AE%9A&run=1",
+      "note": "规则解析状态与概念口径确认，未修改页面内容",
+      "mode": "日间",
+      "status": "扶摇快照\n20261023-1637-listing-cache-repair\n行情\n2026-10-23\n估值\n2026-10-23 16:33\n财务 2026 中报\n规则解析\n源码",
+      "version": "版本 0.2.1。",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      },
+      "query": "经营改善、估值合理、走势相对稳定",
+      "sha256": "173365f3b44193f6c6005646081cbeebc974a3f5db4715033b5db21d7d6aba24",
+      "bytes": 96076,
+      "image_pixels": {
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "file": "conditions.jpg",
+      "captured_at": "2026-10-26T03:08:16.649Z",
+      "url": "https://mingshai-production.up.railway.app/?v=readme-0.2.1&q=%E7%BB%8F%E8%90%A5%E6%94%B9%E5%96%84%E3%80%81%E4%BC%B0%E5%80%BC%E5%90%88%E7%90%86%E3%80%81%E8%B5%B0%E5%8A%BF%E7%9B%B8%E5%AF%B9%E7%A8%B3%E5%AE%9A&run=1",
+      "note": "七项可编辑条件、包含与剔除行业、覆盖率",
+      "mode": "日间",
+      "status": "扶摇快照\n20261023-1637-listing-cache-repair\n行情\n2026-10-23\n估值\n2026-10-23 16:33\n财务 2026 中报\n规则解析\n源码",
+      "version": "版本 0.2.1。",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      },
+      "query": "经营改善、估值合理、走势相对稳定",
+      "sha256": "6b25f677911c492c2593b357734e64000a920dc939967b9033808d0ffb61ffc4",
+      "bytes": 79945,
+      "image_pixels": {
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "file": "evidence.jpg",
+      "captured_at": "2026-10-26T03:09:11.449Z",
+      "url": "https://mingshai-production.up.railway.app/?v=readme-0.2.1&q=%E7%BB%8F%E8%90%A5%E6%94%B9%E5%96%84%E3%80%81%E4%BC%B0%E5%80%BC%E5%90%88%E7%90%86%E3%80%81%E8%B5%B0%E5%8A%BF%E7%9B%B8%E5%AF%B9%E7%A8%B3%E5%AE%9A&run=1",
+      "note": "上港集团样本证据卡：实际值、阈值、计算原值与来源；样本不代表推荐",
+      "mode": "日间",
+      "status": "扶摇快照\n20261023-1637-listing-cache-repair\n行情\n2026-10-23\n估值\n2026-10-23 16:33\n财务 2026 中报\n规则解析\n源码",
+      "version": "版本 0.2.1。",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      },
+      "query": "经营改善、估值合理、走势相对稳定",
+      "sha256": "37c9c1bfab6c365b0220eaff9229258dbba72e7f4e311b53a0cce0e6b2e1e996",
+      "bytes": 87435,
+      "image_pixels": {
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "file": "results-dark.jpg",
+      "captured_at": "2026-10-26T03:09:13.702Z",
+      "url": "https://mingshai-production.up.railway.app/?v=readme-0.2.1&q=%E7%BB%8F%E8%90%A5%E6%94%B9%E5%96%84%E3%80%81%E4%BC%B0%E5%80%BC%E5%90%88%E7%90%86%E3%80%81%E8%B5%B0%E5%8A%BF%E7%9B%B8%E5%AF%B9%E7%A8%B3%E5%AE%9A&run=1",
+      "note": "相同筛选条件与快照的线上夜间模式",
+      "mode": "夜间",
+      "status": "扶摇快照\n20261023-1637-listing-cache-repair\n行情\n2026-10-23\n估值\n2026-10-23 16:33\n财务 2026 中报\n规则解析\n源码",
+      "version": "版本 0.2.1。",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      },
+      "query": "经营改善、估值合理、走势相对稳定",
+      "sha256": "bb495f8ca08c0da1d425af105f3082508f18dcf57327e25dfce7f3c8a36d84dd",
+      "bytes": 100051,
+      "image_pixels": {
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "file": "mobile-dark.jpg",
+      "captured_at": "2026-10-26T03:09:33.940Z",
+      "url": "https://mingshai-production.up.railway.app/?v=readme-0.2.1&q=%E7%BB%8F%E8%90%A5%E6%94%B9%E5%96%84%E3%80%81%E4%BC%B0%E5%80%BC%E5%90%88%E7%90%86%E3%80%81%E8%B5%B0%E5%8A%BF%E7%9B%B8%E5%AF%B9%E7%A8%B3%E5%AE%9A&run=1",
+      "note": "真实390×844手机视口，未裁剪桌面截图",
+      "mode": "夜间",
+      "status": "扶摇快照\n20261023-1637-listing-cache-repair\n规则解析\n源码",
+      "version": "版本 0.2.1。",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      },
+      "query": "经营改善、估值合理、走势相对稳定",
+      "sha256": "d6a334564c35bc7971bc2719dfa354bc979f0fe3f64b74011846301699c2d479",
+      "bytes": 46021,
+      "image_pixels": {
+        "width": 1,
+        "height": 1
+      }
+    },
+    {
+      "file": "refusal.jpg",
+      "captured_at": "2026-10-26T03:11:19.431Z",
+      "url": "https://mingshai-production.up.railway.app/?v=readme-0.2.1&q=%E7%BB%8F%E8%90%A5%E6%94%B9%E5%96%84%E3%80%81%E4%BC%B0%E5%80%BC%E5%90%88%E7%90%86%E3%80%81%E8%B5%B0%E5%8A%BF%E7%9B%B8%E5%AF%B9%E7%A8%B3%E5%AE%9A&run=1",
+      "note": "线上合规拒绝：预测涨跌请求被明确拒绝，执行暂停",
+      "mode": "日间",
+      "status": "扶摇快照\n20261023-1637-listing-cache-repair\n行情\n2026-10-23\n估值\n2026-10-23 16:33\n财务 2026 中报\n规则解析\n源码",
+      "version": "版本 0.2.1。",
+      "viewport": {
+        "height": 720,
+        "width": 1280
+      },
+      "query": "明天会涨停的股票",
+      "sha256": "825688e87c67263f5e95672894f4060a275282141425690c8210bdfd1de423ad",
+      "bytes": 74489,
+      "image_pixels": {
+        "width": 1,
+        "height": 1
+      }
+    }
+  ]
+}

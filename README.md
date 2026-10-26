@@ -19,7 +19,9 @@
 
 </div>
 
-<p align="center"><img src="docs/images/results.jpg" alt="结果与理由：四个分组、逐条漏斗、去掉每个条件的影响、阈值曲线" width="100%"></p>
+<p align="center"><img src="docs/images/v0.2.1/results.jpg" alt="结果与理由：四个分组、逐条漏斗、去掉每个条件的影响、阈值曲线" width="100%"></p>
+
+<p align="center"><sub>线上 0.2.1 实拍 · 2026-10-25（纽约时间）。当前使用规则解析；行情与估值时点、上市日期缓存来源均保留在画面中。<a href="docs/images/v0.2.1/README.md">查看采集记录</a></sub></p>
 
 ## 为什么做
 
@@ -45,19 +47,19 @@
 
 <table>
 <tr>
-<td width="50%"><img src="docs/images/understand.jpg" alt="确认理解"><br><sub><b>确认理解</b>：每个词选一种口径，AI 的理解写在明处</sub></td>
-<td width="50%"><img src="docs/images/evidence.jpg" alt="证据卡"><br><sub><b>证据卡</b>：实际值、阈值、公式、接口、字段、报告期、request_id</sub></td>
+<td width="50%"><img src="docs/images/v0.2.1/understand.jpg" alt="确认理解"><br><sub><b>确认理解</b>：解析口径与默认假设写在明处</sub></td>
+<td width="50%"><img src="docs/images/v0.2.1/evidence.jpg" alt="证据卡"><br><sub><b>证据卡</b>：实际值、阈值、公式、接口、字段、报告期、request_id</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/images/conditions.jpg" alt="检查条件"><br><sub><b>检查条件</b>：同样的条件和数据，结果永远一样</sub></td>
-<td width="50%"><img src="docs/images/refusal.jpg" alt="合规拒绝"><br><sub><b>合规边界</b>：不预测涨跌、不承诺收益、不给买卖建议</sub></td>
+<td width="50%"><img src="docs/images/v0.2.1/conditions.jpg" alt="检查条件"><br><sub><b>检查条件</b>：同样的条件和数据，结果永远一样</sub></td>
+<td width="50%"><img src="docs/images/v0.2.1/refusal.jpg" alt="合规拒绝"><br><sub><b>合规边界</b>：不预测涨跌、不承诺收益、不给买卖建议</sub></td>
 </tr>
 </table>
 
 <p align="center">
-<img src="docs/images/results-dark.jpg" alt="夜间模式" width="70%">&nbsp;
-<img src="docs/images/mobile-dark.jpg" alt="手机" width="20%"><br>
-<sub>日间 / 夜间一键切换，手机到宽屏都适配</sub>
+<img src="docs/images/v0.2.1/results-dark.jpg" alt="夜间模式" width="70%">&nbsp;
+<img src="docs/images/v0.2.1/mobile-dark.jpg" alt="手机" width="20%"><br>
+<sub>线上夜间模式 / 390 × 844 手机视口</sub>
 </p>
 
 ## 能做什么
@@ -214,7 +216,7 @@ uv run --env-file .env uvicorn mingshai.app:app --port 5577     # 打开 http://
 | [用户试用执行包](docs/USER_RESEARCH.md) | 任务卡、访谈提纲、记录表和复盘方法，尚未开展 |
 | [运行手册](docs/RUNBOOK.md) | 数据契约、备份与修复、AI状态和上线验收 |
 | [`scripts/demo_video/`](scripts/demo_video/) | 演示视频的制作脚本（本地配音、逐句字幕、成片验收） |
-| [`scripts/readme_shots.py`](scripts/readme_shots.py) | 本页截图的生成脚本 |
+| [`scripts/readme_shots.py`](scripts/readme_shots.py) | 可选自动重拍脚本；本次线上实拍记录见 [`docs/images/v0.2.1/`](docs/images/v0.2.1/) |
 
 ---
 
