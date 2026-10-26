@@ -18,7 +18,6 @@ import argparse
 import asyncio
 import json
 import os
-import shutil
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -32,6 +31,7 @@ from ..store import DATA_DIR, SNAPSHOT_PATH
 from .features import adjusted_returns, event_sanity, price_features
 from .fixture import derive
 from .fuyao import FuyaoClient, FuyaoError, load_api_key
+from .quality import listing_dates, preserve_current, require_quality
 
 WORK = DATA_DIR / "work.duckdb"
 LEDGER = DATA_DIR / "ledger.jsonl"
@@ -208,7 +208,8 @@ async def _build(cli: FuyaoClient, work, st: State, limit: int | None, refresh: 
     f = f.join(inc, how="left")
     f = f.join(pf, how="left")
     pdate = pd.to_datetime(f["price_date"].fillna(as_of.strftime("%Y-%m-%d")))
-    f["listed_days"] = (pdate - pd.to_datetime(f["list_date"], errors="coerce")).dt.days
+    f["list_date"] = listing_dates(f["list_date"])
+    f["listed_days"] = (pdate - f["list_date"]).dt.days
     derive(f)
     for col in ("in_hs300", "in_zz500", "in_zz1000", "is_st"):
         f[col] = f[col].fillna(False).astype(bool)
@@ -474,8 +475,8 @@ async def _prices(cli: FuyaoClient, work) -> tuple[pd.DataFrame, pd.DataFrame, s
 
 
 def _write_snapshot(features: pd.DataFrame, meta: dict) -> None:
-    if len(features) < 50:
-        raise RuntimeError(f"快照只有 {len(features)} 只股票，疑似取数不完整，不替换现有快照")
+    # Validate before touching the current file or its recoverable predecessor.
+    meta["quality"] = require_quality(features, mode=meta.get("mode", "live"))
     tmp = SNAPSHOT_PATH.with_suffix(".duckdb.new")
     if tmp.exists():
         tmp.unlink()
@@ -485,8 +486,7 @@ def _write_snapshot(features: pd.DataFrame, meta: dict) -> None:
     con.execute("CREATE TABLE meta (key VARCHAR, value VARCHAR)")
     con.execute("INSERT INTO meta VALUES ('meta', ?)", [json.dumps(meta, ensure_ascii=False, default=str)])
     con.close()
-    if SNAPSHOT_PATH.exists():
-        shutil.copy2(SNAPSHOT_PATH, SNAPSHOT_PATH.with_suffix(".prev.duckdb"))
+    preserve_current(SNAPSHOT_PATH)
     os.replace(tmp, SNAPSHOT_PATH)
 
 

@@ -12,10 +12,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from mingshai import llm, parse_llm
+from mingshai.compile import compile_strategy
 from mingshai.data.build import _find_url, choose_industry
 from mingshai.data.features import adjusted_returns, event_sanity, price_features
 from mingshai.data.fuyao import FuyaoClient, FuyaoError
 from mingshai.explain import compliance_guard, number_guard
+from mingshai.guard import check_strategy
 
 
 # ── 复权与行情指标 ────────────────────────────────────────────────────
@@ -203,9 +205,11 @@ def test_llm_out_of_catalog_is_blocked(monkeypatch):
     ]}
     monkeypatch.setattr(llm, "complete_json", lambda *a, **k: (fake, {"model": "fake", "latency_ms": 5}))
     r = parse_llm.parse("估值合理、护城河深、PE低于-99999999", {})
-    assert r.mode == "llm" and [s.concept_id for s in r.segments] == ["val_fair"]
+    assert r.mode == "llm" and [s.concept_id for s in r.segments if s.kind == "concept"] == ["val_fair"]
     assert r.segments[0].option_id == "abs_pe"
     assert len(r.blocked) == 2 and r.rules_shadow is not None
+    s, _, _ = compile_strategy(r.query, r.segments)
+    assert any(i["severity"] == "error" for i in check_strategy(s))
 
 
 def test_llm_failure_falls_back_to_rules(monkeypatch):

@@ -102,7 +102,7 @@ def list_monitors(client_id: str) -> list[dict]:
         out = []
         for r in rows:
             d = dict(r)
-            last = con.execute("SELECT * FROM monitor_runs WHERE monitor_id=? ORDER BY run_at DESC LIMIT 1",
+            last = con.execute("SELECT * FROM monitor_runs WHERE monitor_id=? ORDER BY run_at DESC, rowid DESC LIMIT 1",
                                (r["id"],)).fetchone()
             d["last_run"] = _run(last) if last else None
             out.append(d)
@@ -114,7 +114,7 @@ def monitor_runs(client_id: str, mid: str) -> list[dict]:
         m = con.execute("SELECT * FROM monitors WHERE id=? AND client_id=?", (mid, client_id)).fetchone()
         if not m:
             raise KeyError("监控不存在")
-        rows = con.execute("SELECT * FROM monitor_runs WHERE monitor_id=? ORDER BY run_at DESC LIMIT 30",
+        rows = con.execute("SELECT * FROM monitor_runs WHERE monitor_id=? ORDER BY run_at DESC, rowid DESC LIMIT 30",
                            (mid,)).fetchall()
     return [_run(r) for r in rows]
 
@@ -133,10 +133,14 @@ def run_monitor(mid: str, ds, engine_run, trigger: str = "manual") -> dict:
         if not m:
             raise KeyError("监控不存在")
         s = get_strategy(m["strategy_id"])
-        prev = con.execute("SELECT * FROM monitor_runs WHERE monitor_id=? ORDER BY run_at DESC LIMIT 1",
+        prev = con.execute("SELECT * FROM monitor_runs WHERE monitor_id=? ORDER BY run_at DESC, rowid DESC LIMIT 1",
                            (mid,)).fetchone()
     strategy = Strategy.model_validate(s["strategy"])
-    if prev and prev["snapshot_id"] == ds.snapshot_id:
+    from .guard import check_strategy
+    issues = check_strategy(strategy)
+    if any(i["severity"] == "error" for i in issues):
+        raise ValueError("策略意图尚未确认，请修改后重新保存")
+    if prev and prev["snapshot_id"] == ds.snapshot_id and prev["run_id"] == strategy.fingerprint(ds.snapshot_id):
         note = f"数据快照 {ds.snapshot_id} 与上次相同，没有新数据，名单不变（未重复计算）。"
         rec = {"passed": json.loads(prev["passed_json"]), "entered": [], "exited": [],
                "counts": json.loads(prev["counts_json"]), "run_id": prev["run_id"]}
@@ -170,9 +174,19 @@ def run_monitor(mid: str, ds, engine_run, trigger: str = "manual") -> dict:
 def run_all(ds, engine_run, trigger: str = "data_refresh") -> int:
     with _con() as con:
         ids = [r["id"] for r in con.execute("SELECT id FROM monitors WHERE active=1").fetchall()]
+    succeeded = 0
     for mid in ids:
         try:
             run_monitor(mid, ds, engine_run, trigger)
+            succeeded += 1
         except Exception:  # noqa: BLE001 —— 单个监控失败不影响其他监控
+            with _lock, _con() as con:
+                prev = con.execute("SELECT * FROM monitor_runs WHERE monitor_id=? ORDER BY run_at DESC, rowid DESC LIMIT 1",
+                                   (mid,)).fetchone()
+                if prev:
+                    con.execute("INSERT INTO monitor_runs VALUES (?,?,?,?,?,?,?,?,?,?,?)", (
+                        uuid.uuid4().hex[:10], mid, _now(), prev["snapshot_id"], prev["run_id"],
+                        prev["passed_json"], "[]", "[]", prev["counts_json"],
+                        "本次监控未执行：条件需重新确认或数据不可用。仍保留上次结果，请打开策略检查。", "failed"))
             continue
-    return len(ids)
+    return succeeded

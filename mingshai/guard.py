@@ -15,6 +15,7 @@ from __future__ import annotations
 import math
 
 from .dsl import Condition, Segment, Strategy
+from .intent import inspect_intent
 from .registry import BASES, CONCEPTS_BY_ID, METRICS_BY_ID, OPS, UNIVERSES_BY_ID
 
 MAX_CONDITIONS = 15
@@ -80,13 +81,13 @@ def check_segment(seg: Segment, industries: dict[str, str]) -> tuple[Segment | N
         if seg.universe_id not in UNIVERSES_BY_ID:
             return None, f"没有股票池 {seg.universe_id!r}"
         return seg, None
-    if k == "industry":
+    if k in ("industry", "exclude_industry"):
         name = (seg.industry or "").strip()
         code = resolve_industry(name, industries)
         if code is None:
             return seg.model_copy(update={
                 "kind": "unsupported",
-                "reason": f"没有找到名为“{name}”的同花顺行业，可在股票池里手动选择行业",
+                "reason": f"没有找到名为“{name}”的同花顺行业，请用支持的行业名称改写后重新解析",
             }), None
         return seg.model_copy(update={"industry_code": code}), None
     if k == "exclude":
@@ -121,14 +122,21 @@ def check_condition(c: Condition) -> str | None:
 def check_strategy(s: Strategy, known_industries: set[str] | None = None) -> list[dict]:
     """返回 [{severity, condition_id, message}]；severity=error 时不允许运行。"""
     issues: list[dict] = []
+    intent_issues = list(s.intent_issues) + inspect_intent(s.query)
+    for issue in {i.code + i.text: i for i in intent_issues}.values():
+        issues.append({"severity": "error", "condition_id": None, "code": issue.code,
+                       "message": issue.message, "source_text": issue.text})
     if s.universe.base not in UNIVERSES_BY_ID:
         issues.append({"severity": "error", "condition_id": None,
                        "message": f"没有股票池 {s.universe.base!r}"})
     if known_industries is not None:
-        for code in s.universe.industries:
+        for code in s.universe.industries + s.universe.excluded_industries:
             if code not in known_industries:
                 issues.append({"severity": "error", "condition_id": None,
                                "message": f"行业代码 {code} 不在当前数据快照里"})
+    if set(s.universe.industries) & set(s.universe.excluded_industries):
+        issues.append({"severity": "error", "condition_id": None,
+                       "message": "同一个行业同时被保留和剔除，请先解决冲突。"})
     if len(s.conditions) > MAX_CONDITIONS:
         issues.append({"severity": "error", "condition_id": None,
                        "message": f"条件最多 {MAX_CONDITIONS} 条，现在有 {len(s.conditions)} 条"})

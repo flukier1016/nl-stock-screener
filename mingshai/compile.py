@@ -5,7 +5,8 @@
 """
 from __future__ import annotations
 
-from .dsl import Condition, Segment, Strategy, UniverseSpec
+from .dsl import Condition, IntentIssue, Segment, Strategy, UniverseSpec
+from .intent import inspect_intent
 from .registry import CONCEPTS_BY_ID, METRICS_BY_ID, REPORT_LABELS, REPORT_LATEST, UNIVERSES_BY_ID
 
 SKIP = "__skip__"
@@ -34,6 +35,7 @@ def compile_strategy(query: str, segments: list[Segment], choices: dict[int, str
     universes_seen: list[tuple[str, str]] = []
     conds: list[Condition] = []
     sig: set[tuple] = set()
+    pending = inspect_intent(query)
 
     def push(metric, op, value, basis, **kw):
         key = (metric, op, str(value), basis)
@@ -52,6 +54,14 @@ def compile_strategy(query: str, segments: list[Segment], choices: dict[int, str
         elif seg.kind == "industry" and seg.industry_code:
             if seg.industry_code not in universe.industries:
                 universe.industries.append(seg.industry_code)
+        elif seg.kind == "exclude_industry" and seg.industry_code:
+            if seg.industry_code not in universe.excluded_industries:
+                universe.excluded_industries.append(seg.industry_code)
+        elif seg.kind in ("unsupported", "refused"):
+            if not any(i.text == seg.text for i in pending):
+                reason = seg.reason.rstrip("。；; ")
+                pending.append(IntentIssue(code=seg.kind, text=seg.text,
+                                           message=f"“{seg.text}”：{reason}。请修改原句后重新解析。"))
         elif seg.kind == "exclude":
             if seg.metric == "st":
                 universe.exclude_st = True
@@ -80,6 +90,8 @@ def compile_strategy(query: str, segments: list[Segment], choices: dict[int, str
             names = "、".join(UNIVERSES_BY_ID[u].label for u in ids)
             notes.append({"severity": "conflict", "condition_ids": [],
                           "message": f"同时提到了 {names}，两者没有重叠，先按 {UNIVERSES_BY_ID[ids[0]].label} 处理。"})
+            pending.append(IntentIssue(code="multiple_universes", text=names,
+                                       message="同时提到多个股票池，请明确选择一个后重新解析。"))
 
     u = UNIVERSES_BY_ID[universe.base]
     assumptions = [
@@ -89,5 +101,6 @@ def compile_strategy(query: str, segments: list[Segment], choices: dict[int, str
     ]
     if any(c.basis != "absolute" for c in conds):
         assumptions.append("“行业中位数”按同花顺行业计算，可比公司不足 5 家时记为缺失。")
-    strategy = Strategy(name=query[:40], query=query, universe=universe, conditions=conds)
+    strategy = Strategy(name=query[:40], query=query, universe=universe, conditions=conds,
+                        intent_issues=list({i.code + i.text: i for i in pending}.values()))
     return strategy, assumptions, notes

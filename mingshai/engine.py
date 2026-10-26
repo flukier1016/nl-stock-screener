@@ -41,28 +41,49 @@ class CondEval:
 
 
 def universe_index(ds: Dataset, s: Strategy) -> tuple[pd.Index, list[dict]]:
+    idx, steps, _ = universe_partition(ds, s)
+    return idx, steps
+
+
+def universe_partition(ds: Dataset, s: Strategy) -> tuple[pd.Index, list[dict], dict[str, list[str]]]:
     f = ds.frame
     steps = [{"step": "全部 A 股", "count": int(len(f))}]
     mask = pd.Series(True, index=f.index)
+    uncertain = pd.Series(False, index=f.index)
+    reasons: dict[str, list[str]] = {}
+
+    def unknown(field, message):
+        nonlocal uncertain
+        miss = mask & f[field].isna()
+        uncertain |= miss
+        for code in f.index[miss]:
+            reasons.setdefault(code, []).append(message)
     u = UNIVERSES_BY_ID[s.universe.base]
     if u.index_thscode:
         col = {"hs300": "in_hs300", "zz500": "in_zz500", "zz1000": "in_zz1000"}[u.id]
         mask &= f[col].fillna(False).astype(bool)
         steps.append({"step": u.label + " 成分股", "count": int(mask.sum())})
     if s.universe.industries:
-        mask &= f["industry_code"].isin(s.universe.industries)
+        unknown("industry_code", "所属行业缺失，无法判断是否进入指定行业")
+        mask &= f["industry_code"].isin(s.universe.industries) | f["industry_code"].isna()
         names = "、".join(sorted(set(f.loc[f["industry_code"].isin(s.universe.industries), "industry_name"])))
         steps.append({"step": f"行业：{names or '（无匹配）'}", "count": int(mask.sum())})
+    if s.universe.excluded_industries:
+        unknown("industry_code", "所属行业缺失，无法判断是否属于剔除行业")
+        mask &= ~f["industry_code"].isin(s.universe.excluded_industries)
+        steps.append({"step": "剔除指定行业", "count": int(mask.sum())})
     if s.universe.exclude_st:
         mask &= ~f["is_st"].fillna(False).astype(bool)
         steps.append({"step": "剔除 ST / *ST", "count": int(mask.sum())})
     if s.universe.min_listed_days > 0:
-        mask &= f["listed_days"].fillna(0) >= s.universe.min_listed_days
-        steps.append({"step": f"剔除上市不满 {s.universe.min_listed_days} 天", "count": int(mask.sum())})
+        unknown("listed_days", "上市日期缺失，无法判断上市年限")
+        mask &= (f["listed_days"] >= s.universe.min_listed_days) | f["listed_days"].isna()
+        steps.append({"step": f"检查上市满 {s.universe.min_listed_days} 天", "count": int(mask.sum()),
+                      "unknown": int((mask & uncertain).sum())})
     if s.universe.exclude_bj:
         mask &= f["exchange"] != "BJ"
         steps.append({"step": "剔除北交所", "count": int(mask.sum())})
-    return f.index[mask], steps
+    return f.index[mask], steps, {c: why for c, why in reasons.items() if mask.at[c]}
 
 
 def _peer_pool(ds: Dataset, metric: str) -> pd.Series:
@@ -138,7 +159,8 @@ def _gap(c: Condition, v: pd.Series, thr: pd.Series, hi: pd.Series | None, ds: D
 
 
 def run(ds: Dataset, s: Strategy) -> dict:
-    idx, uni_steps = universe_index(ds, s)
+    idx, uni_steps, universe_missing = universe_partition(ds, s)
+    eligible = pd.Series(~idx.isin(universe_missing), index=idx)
     evals = [evaluate(ds, c, idx) for c in s.conditions]
     n = len(idx)
     if evals:
@@ -156,8 +178,9 @@ def run(ds: Dataset, s: Strategy) -> dict:
     category[(n_fail == 0) & (n_miss == 0)] = "passed"
     category[(n_fail == 0) & (n_miss > 0)] = "missing"
     category[(n_fail == 1) & (n_miss == 0) & (worst_gap <= tol)] = "near_miss"
+    category[~eligible] = "missing"
 
-    funnel, alive = [], pd.Series(True, index=idx)
+    funnel, alive = [], eligible.copy()
     for e in evals:
         alive &= e.status == "pass"
         funnel.append({"condition_id": e.cond.id, "label": describe(e.cond.metric, e.cond.op, e.cond.value, e.cond.basis),
@@ -168,7 +191,7 @@ def run(ds: Dataset, s: Strategy) -> dict:
     passed_idx = idx[category == "passed"]
     impact = []
     for e in evals:
-        others = pd.Series(True, index=idx)
+        others = eligible.copy()
         for o in evals:
             if o is not e:
                 others &= o.status == "pass"
@@ -195,6 +218,7 @@ def run(ds: Dataset, s: Strategy) -> dict:
         rows.append({
             "thscode": code, "name": names[k], "industry": inds[k] if isinstance(inds[k], str) else None,
             "category": cats[k], "conds": conds,
+            "universe_missing": universe_missing.get(code, []),
             "fails": [cid for cid, *_, st_, _g in cols if st_[k] == "fail"],
             "missing": [cid for cid, *_, st_, _g in cols if st_[k] == "missing"],
             "worst_gap": _f(wg[k]),
@@ -207,6 +231,7 @@ def run(ds: Dataset, s: Strategy) -> dict:
         "funnel": funnel, "impact": impact, "fail_distribution": fail_dist,
         "rows": rows, "passed": [r["thscode"] for r in rows if r["category"] == "passed"],
         "evals": evals, "_index": idx, "passed_index": passed_idx,
+        "universe_unknown_count": len(universe_missing),
     }
 
 

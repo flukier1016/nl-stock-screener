@@ -98,8 +98,10 @@ def test_rules_canonical_query():
 
 
 def test_rules_longest_synonym_wins():
-    # "分红稳定"属于高股息，不能被"稳定"（走势稳定）抢走
-    assert kinds("分红稳定") == [("concept", "div_high")]
+    assert kinds("高分红") == [("concept", "div_high")]
+    assert kinds("走势稳定") == [("concept", "px_stable")]
+    # Dividend consistency needs a multi-year series, not a high-yield proxy.
+    assert kinds("分红稳定") == [("unsupported", None)]
 
 
 def test_rules_explicit_numbers_and_ops():

@@ -29,7 +29,7 @@ SCHEMA = {
                 "type": "object",
                 "properties": {
                     "text": {"type": "string"},
-                    "kind": {"type": "string", "enum": ["concept", "explicit", "universe", "industry",
+                    "kind": {"type": "string", "enum": ["concept", "explicit", "universe", "industry", "exclude_industry",
                                                         "exclude", "unsupported", "refused"]},
                     "concept_id": {"type": ["string", "null"]},
                     "option_id": {"type": ["string", "null"]},
@@ -85,11 +85,14 @@ SYSTEM_TMPL = """你是“所以然”选股产品的意图解析器。你的唯
    只有当用户原话明显更贴近另一个方案时才换，并在 reason 里说明理由。
 4. 用户写明了数字的条件输出 kind=explicit：填 metric、op、value（区间用 op=between，value=下限，value_hi=上限）。
    “ROE”一律对应 roe_ann（中报年化），reason 里注明。百分数只写数字（15% → 15）。
-5. 行业输出 kind=industry，industry 填目录里最接近的行业名称原文；大盘/中盘/小盘用 kind=universe。
+5. 保留某行业输出 kind=industry；“不要银行”“剔除券商”等行业排除输出 kind=exclude_industry。
+   industry 填目录里最接近的行业名称原文；大盘/中盘/小盘用 kind=universe。
 6. “剔除 ST / 次新 / 北交所”输出 kind=exclude，metric 分别填 st / new / bj。
 7. 不要输出任何股票代码、公司名称，也不要编造任何关于具体公司的数字。
 8. text 字段必须是用户原话里的连续片段；没有用到的字段填 null，basis 默认 absolute。
 9. paraphrase：用一句中文复述你理解的选股意图；clarify：最多 3 个需要用户确认的问题，没有就给空数组。
+10. 当前条件列表只表示“同时满足”；遇到“或者/任一”、不支持的时间窗口、多年分红稳定性，
+    必须输出 unsupported，不能改成 AND、不能把20日改成60日，不能把分红稳定改成高股息。
 只输出一个 JSON 对象，格式：
 {{"paraphrase": "…", "clarify": ["…"], "segments": [{{"text": "…", "kind": "concept", "concept_id": "…", "option_id": "…",
   "metric": null, "op": null, "value": null, "value_hi": null, "basis": "absolute", "universe_id": null, "industry": null, "reason": "…"}}]}}
@@ -121,6 +124,11 @@ def parse(query: str, industries: dict[str, str], gate=None) -> ParseResult:
                            fallback_reason=f"大模型解析失败（{e}），已改用规则解析")
     raw, pre_blocked = [], []
     for item in data.get("segments", []):
+        from .parse_rules import normalize
+        source_text = str(item.get("text", ""))
+        if not source_text.strip() or normalize(source_text) not in normalize(query):
+            pre_blocked.append({"segment": item, "reason": "片段不是用户原句中的连续文字"})
+            continue
         value = item.get("value")
         if item.get("op") == "between" and value is not None and item.get("value_hi") is not None:
             value = [float(value), float(item["value_hi"])]
@@ -135,6 +143,33 @@ def parse(query: str, industries: dict[str, str], gate=None) -> ParseResult:
             pre_blocked.append({"segment": item, "reason": f"结构不合法：{e}"})
     segs, blocked = _guarded(raw, industries)
     blocked = pre_blocked + blocked
+    # Literal numeric predicates and explicit exclusions can be checked without
+    # asking another model. Never accept a well-formed but different predicate.
+    from .compile import compile_strategy
+    compiled, _, _ = compile_strategy(query, segs)
+    for model_segment in (s for s in segs if s.kind == "explicit"):
+        if not any(s.kind == "explicit" and
+                   (s.metric, s.op, s.value, s.basis) ==
+                   (model_segment.metric, model_segment.op, model_segment.value, model_segment.basis)
+                   for s in shadow):
+            return ParseResult(query=query, mode="rules_fallback", segments=shadow,
+                               fallback_reason="AI 添加了原句未能核验的数值条件，已采用规则解析；模糊意图仍需确认。")
+    for literal in shadow:
+        if literal.kind == "explicit" and not any(
+            (c.metric, c.op, c.value, c.basis) == (literal.metric, literal.op, literal.value, literal.basis)
+            for c in compiled.conditions
+        ):
+            return ParseResult(query=query, mode="rules_fallback", segments=shadow,
+                               fallback_reason="AI 未完整保留写明的数值、比较符或基准，已采用规则解析；未识别部分需先确认。")
+        if literal.kind == "exclude_industry" and not any(
+            s.kind == "exclude_industry" and s.industry_code == literal.industry_code for s in segs
+        ):
+            return ParseResult(query=query, mode="rules_fallback", segments=shadow,
+                               fallback_reason="AI 未保留行业排除要求，已采用规则解析。")
+    if blocked:
+        # A dropped fragment may have been essential to the query. Retain a
+        # blocking segment so a partial translation cannot yield normal output.
+        segs.append(Segment(text=query, kind="unsupported", reason="AI 有输出未通过校验，请改写后重新解析", by="llm"))
     if query.strip() and not segs and not blocked:
         return ParseResult(query=query, mode="rules_fallback", segments=shadow,
                            fallback_reason="大模型没有解析出任何片段，已改用规则解析")

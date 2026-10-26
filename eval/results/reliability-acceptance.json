@@ -1,0 +1,2128 @@
+{
+  "generated_at": "2026-10-26T01:02:18+00:00",
+  "purpose": "Regression acceptance, not real-user accuracy or investment performance",
+  "cases_sha256": "c1b3ab20d3449e492dfa5f2f84cf761cac0ed3ac68653aab75c12836a50764e6",
+  "intent_gates": {
+    "passed": 39,
+    "n": 39,
+    "rows": [
+      {
+        "id": "lt_pe",
+        "query": "PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "lt_pe",
+          "query": "PE低于15倍",
+          "conditions": [
+            [
+              "pe_ttm",
+              "<",
+              15
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "PE低于15倍",
+          "query": "PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "le_pe",
+        "query": "PE不超过15倍",
+        "pass": true,
+        "expected": {
+          "id": "le_pe",
+          "query": "PE不超过15倍",
+          "conditions": [
+            [
+              "pe_ttm",
+              "<=",
+              15
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "PE不超过15倍",
+          "query": "PE不超过15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<=",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe不超过15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "gt_dy",
+        "query": "股息率高于3%",
+        "pass": true,
+        "expected": {
+          "id": "gt_dy",
+          "query": "股息率高于3%",
+          "conditions": [
+            [
+              "div_yield",
+              ">",
+              3
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "股息率高于3%",
+          "query": "股息率高于3%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "div_yield",
+              "op": ">",
+              "value": 3.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "股息率高于3%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "ge_dy",
+        "query": "股息率不低于3%",
+        "pass": true,
+        "expected": {
+          "id": "ge_dy",
+          "query": "股息率不低于3%",
+          "conditions": [
+            [
+              "div_yield",
+              ">=",
+              3
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "股息率不低于3%",
+          "query": "股息率不低于3%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "div_yield",
+              "op": ">=",
+              "value": 3.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "股息率不低于3%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "range_pe",
+        "query": "PE在10到20倍之间",
+        "pass": true,
+        "expected": {
+          "id": "range_pe",
+          "query": "PE在10到20倍之间",
+          "conditions": [
+            [
+              "pe_ttm",
+              "between",
+              [
+                10,
+                20
+              ]
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "PE在10到20倍之间",
+          "query": "PE在10到20倍之间",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "between",
+              "value": [
+                10.0,
+                20.0
+              ],
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe在10到20倍之间"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "bank_not",
+        "query": "不要银行股，股息率高于3%",
+        "pass": true,
+        "expected": {
+          "id": "bank_not",
+          "query": "不要银行股，股息率高于3%",
+          "conditions": [
+            [
+              "div_yield",
+              ">",
+              3
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": [
+            "银行"
+          ]
+        },
+        "actual_strategy": {
+          "name": "不要银行股，股息率高于3%",
+          "query": "不要银行股，股息率高于3%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [
+              "881155.TI"
+            ],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "div_yield",
+              "op": ">",
+              "value": 3.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "股息率高于3%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "bank_exclude",
+        "query": "剔除银行，PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "bank_exclude",
+          "query": "剔除银行，PE低于15倍",
+          "conditions": [
+            [
+              "pe_ttm",
+              "<",
+              15
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": [
+            "银行"
+          ]
+        },
+        "actual_strategy": {
+          "name": "剔除银行，PE低于15倍",
+          "query": "剔除银行，PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [
+              "881155.TI"
+            ],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "broker_not",
+        "query": "不要券商，股息率不低于3%",
+        "pass": true,
+        "expected": {
+          "id": "broker_not",
+          "query": "不要券商，股息率不低于3%",
+          "conditions": [
+            [
+              "div_yield",
+              ">=",
+              3
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": [
+            "证券"
+          ]
+        },
+        "actual_strategy": {
+          "name": "不要券商，股息率不低于3%",
+          "query": "不要券商，股息率不低于3%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [
+              "881157.TI"
+            ],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "div_yield",
+              "op": ">=",
+              "value": 3.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "股息率不低于3%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "two_exclude",
+        "query": "剔除银行和券商，PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "two_exclude",
+          "query": "剔除银行和券商，PE低于15倍",
+          "conditions": [
+            [
+              "pe_ttm",
+              "<",
+              15
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": [
+            "银行",
+            "证券"
+          ]
+        },
+        "actual_strategy": {
+          "name": "剔除银行和券商，PE低于15倍",
+          "query": "剔除银行和券商，PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [
+              "881155.TI",
+              "881157.TI"
+            ],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "bank_only",
+        "query": "银行股里PB低于1倍",
+        "pass": true,
+        "expected": {
+          "id": "bank_only",
+          "query": "银行股里PB低于1倍",
+          "conditions": [
+            [
+              "pb_mrq",
+              "<",
+              1
+            ]
+          ],
+          "industries": [
+            "银行"
+          ],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "银行股里PB低于1倍",
+          "query": "银行股里PB低于1倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [
+              "881155.TI"
+            ],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pb_mrq",
+              "op": "<",
+              "value": 1.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pb低于1倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "wine_only",
+        "query": "白酒股里PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "wine_only",
+          "query": "白酒股里PE低于15倍",
+          "conditions": [
+            [
+              "pe_ttm",
+              "<",
+              15
+            ]
+          ],
+          "industries": [
+            "白酒"
+          ],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "白酒股里PE低于15倍",
+          "query": "白酒股里PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [
+              "881273.TI"
+            ],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "vol60",
+        "query": "近60日波动率低于20%",
+        "pass": true,
+        "expected": {
+          "id": "vol60",
+          "query": "近60日波动率低于20%",
+          "conditions": [
+            [
+              "vol_60d",
+              "<",
+              20
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "近60日波动率低于20%",
+          "query": "近60日波动率低于20%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "vol_60d",
+              "op": "<",
+              "value": 20.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "近60日波动率低于20%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "mdd120",
+        "query": "120日最大回撤不超过10%",
+        "pass": true,
+        "expected": {
+          "id": "mdd120",
+          "query": "120日最大回撤不超过10%",
+          "conditions": [
+            [
+              "mdd_120d",
+              "<=",
+              10
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "120日最大回撤不超过10%",
+          "query": "120日最大回撤不超过10%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "mdd_120d",
+              "op": "<=",
+              "value": 10.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "120日最大回撤不超过10%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "roe_boundary",
+        "query": "ROE大于15%",
+        "pass": true,
+        "expected": {
+          "id": "roe_boundary",
+          "query": "ROE大于15%",
+          "conditions": [
+            [
+              "roe_ann",
+              ">",
+              15
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "ROE大于15%",
+          "query": "ROE大于15%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "roe_ann",
+              "op": ">",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "roe大于15%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "debt_boundary",
+        "query": "负债率不超过40%",
+        "pass": true,
+        "expected": {
+          "id": "debt_boundary",
+          "query": "负债率不超过40%",
+          "conditions": [
+            [
+              "debt_ratio",
+              "<=",
+              40
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "负债率不超过40%",
+          "query": "负债率不超过40%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "debt_ratio",
+              "op": "<=",
+              "value": 40.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "负债率不超过40%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "revenue",
+        "query": "营收增速超过30%",
+        "pass": true,
+        "expected": {
+          "id": "revenue",
+          "query": "营收增速超过30%",
+          "conditions": [
+            [
+              "rev_yoy",
+              ">",
+              30
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "营收增速超过30%",
+          "query": "营收增速超过30%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "rev_yoy",
+              "op": ">",
+              "value": 30.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "营收增速超过30%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "profits",
+        "query": "净利润增长不低于20%",
+        "pass": true,
+        "expected": {
+          "id": "profits",
+          "query": "净利润增长不低于20%",
+          "conditions": [
+            [
+              "np_yoy",
+              ">=",
+              20
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "净利润增长不低于20%",
+          "query": "净利润增长不低于20%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "np_yoy",
+              "op": ">=",
+              "value": 20.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "净利润增长不低于20%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "and",
+        "query": "PE低于15倍，股息率不低于3%",
+        "pass": true,
+        "expected": {
+          "id": "and",
+          "query": "PE低于15倍，股息率不低于3%",
+          "conditions": [
+            [
+              "pe_ttm",
+              "<",
+              15
+            ],
+            [
+              "div_yield",
+              ">=",
+              3
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "PE低于15倍，股息率不低于3%",
+          "query": "PE低于15倍，股息率不低于3%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            },
+            {
+              "id": "c2",
+              "metric": "div_yield",
+              "op": ">=",
+              "value": 3.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "股息率不低于3%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "dy12",
+        "query": "近12个月股息率高于3%",
+        "pass": true,
+        "expected": {
+          "id": "dy12",
+          "query": "近12个月股息率高于3%",
+          "conditions": [
+            [
+              "div_yield",
+              ">",
+              3
+            ]
+          ],
+          "industries": [],
+          "excluded_industries": []
+        },
+        "actual_strategy": {
+          "name": "近12个月股息率高于3%",
+          "query": "近12个月股息率高于3%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "div_yield",
+              "op": ">",
+              "value": 3.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "近12个月股息率高于3%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": []
+        },
+        "issues": []
+      },
+      {
+        "id": "or_metrics",
+        "query": "PE低于15倍或者股息率高于5%",
+        "pass": true,
+        "expected": {
+          "id": "or_metrics",
+          "query": "PE低于15倍或者股息率高于5%",
+          "blocked": "unsupported_or"
+        },
+        "actual_strategy": {
+          "name": "PE低于15倍或者股息率高于5%",
+          "query": "PE低于15倍或者股息率高于5%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            },
+            {
+              "id": "c2",
+              "metric": "div_yield",
+              "op": ">",
+              "value": 5.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "股息率高于5%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_or",
+              "text": "或者",
+              "message": "这句话包含“或”的逻辑。本版本只执行同时满足的条件，请拆成两次筛选，或改写后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_or",
+            "message": "这句话包含“或”的逻辑。本版本只执行同时满足的条件，请拆成两次筛选，或改写后重新解析。",
+            "source_text": "或者"
+          }
+        ]
+      },
+      {
+        "id": "or_short",
+        "query": "PE低于15或PB低于1",
+        "pass": true,
+        "expected": {
+          "id": "or_short",
+          "query": "PE低于15或PB低于1",
+          "blocked": "unsupported_or"
+        },
+        "actual_strategy": {
+          "name": "PE低于15或PB低于1",
+          "query": "PE低于15或PB低于1",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15"
+            },
+            {
+              "id": "c2",
+              "metric": "pb_mrq",
+              "op": "<",
+              "value": 1.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pb低于1"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_or",
+              "text": "或",
+              "message": "这句话包含“或”的逻辑。本版本只执行同时满足的条件，请拆成两次筛选，或改写后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_or",
+            "message": "这句话包含“或”的逻辑。本版本只执行同时满足的条件，请拆成两次筛选，或改写后重新解析。",
+            "source_text": "或"
+          }
+        ]
+      },
+      {
+        "id": "or_industry",
+        "query": "银行或证券，股息率高于3%",
+        "pass": true,
+        "expected": {
+          "id": "or_industry",
+          "query": "银行或证券，股息率高于3%",
+          "blocked": "unsupported_or"
+        },
+        "actual_strategy": {
+          "name": "银行或证券，股息率高于3%",
+          "query": "银行或证券，股息率高于3%",
+          "universe": {
+            "base": "all_a",
+            "industries": [
+              "881155.TI",
+              "881157.TI"
+            ],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "div_yield",
+              "op": ">",
+              "value": 3.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "股息率高于3%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_or",
+              "text": "或",
+              "message": "这句话包含“或”的逻辑。本版本只执行同时满足的条件，请拆成两次筛选，或改写后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_or",
+            "message": "这句话包含“或”的逻辑。本版本只执行同时满足的条件，请拆成两次筛选，或改写后重新解析。",
+            "source_text": "或"
+          }
+        ]
+      },
+      {
+        "id": "or_english",
+        "query": "PE < 15 or PB < 1",
+        "pass": true,
+        "expected": {
+          "id": "or_english",
+          "query": "PE < 15 or PB < 1",
+          "blocked": "unsupported_or"
+        },
+        "actual_strategy": {
+          "name": "PE < 15 or PB < 1",
+          "query": "PE < 15 or PB < 1",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe < 15 "
+            },
+            {
+              "id": "c2",
+              "metric": "pb_mrq",
+              "op": "<",
+              "value": 1.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pb < 1"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_or",
+              "text": "or",
+              "message": "这句话包含“或”的逻辑。本版本只执行同时满足的条件，请拆成两次筛选，或改写后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_or",
+            "message": "这句话包含“或”的逻辑。本版本只执行同时满足的条件，请拆成两次筛选，或改写后重新解析。",
+            "source_text": "or"
+          }
+        ]
+      },
+      {
+        "id": "window20",
+        "query": "近20日波动率低于20%",
+        "pass": true,
+        "expected": {
+          "id": "window20",
+          "query": "近20日波动率低于20%",
+          "blocked": "unsupported_window"
+        },
+        "actual_strategy": {
+          "name": "近20日波动率低于20%",
+          "query": "近20日波动率低于20%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_window",
+              "text": "近20日波动率",
+              "message": "“近20日波动率”的时间窗口尚未支持，不能替换成其他期间的波动率。请修改后重新解析。"
+            },
+            {
+              "code": "unsupported",
+              "text": "低于20%",
+              "message": "“低于20%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_window",
+            "message": "“近20日波动率”的时间窗口尚未支持，不能替换成其他期间的波动率。请修改后重新解析。",
+            "source_text": "近20日波动率"
+          },
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“低于20%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "低于20%"
+          }
+        ]
+      },
+      {
+        "id": "window30",
+        "query": "30日波动率低于20%",
+        "pass": true,
+        "expected": {
+          "id": "window30",
+          "query": "30日波动率低于20%",
+          "blocked": "unsupported_window"
+        },
+        "actual_strategy": {
+          "name": "30日波动率低于20%",
+          "query": "30日波动率低于20%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_window",
+              "text": "30日波动率",
+              "message": "“30日波动率”的时间窗口尚未支持，不能替换成其他期间的波动率。请修改后重新解析。"
+            },
+            {
+              "code": "unsupported",
+              "text": "低于20%",
+              "message": "“低于20%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_window",
+            "message": "“30日波动率”的时间窗口尚未支持，不能替换成其他期间的波动率。请修改后重新解析。",
+            "source_text": "30日波动率"
+          },
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“低于20%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "低于20%"
+          }
+        ]
+      },
+      {
+        "id": "drawdown60",
+        "query": "近60日最大回撤不超过10%",
+        "pass": true,
+        "expected": {
+          "id": "drawdown60",
+          "query": "近60日最大回撤不超过10%",
+          "blocked": "unsupported_window"
+        },
+        "actual_strategy": {
+          "name": "近60日最大回撤不超过10%",
+          "query": "近60日最大回撤不超过10%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_window",
+              "text": "近60日最大回撤",
+              "message": "“近60日最大回撤”的时间窗口尚未支持，不能替换成其他期间的最大回撤。请修改后重新解析。"
+            },
+            {
+              "code": "unsupported",
+              "text": "不超过10%",
+              "message": "“不超过10%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_window",
+            "message": "“近60日最大回撤”的时间窗口尚未支持，不能替换成其他期间的最大回撤。请修改后重新解析。",
+            "source_text": "近60日最大回撤"
+          },
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“不超过10%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "不超过10%"
+          }
+        ]
+      },
+      {
+        "id": "dividend3m",
+        "query": "近3个月股息率高于3%",
+        "pass": true,
+        "expected": {
+          "id": "dividend3m",
+          "query": "近3个月股息率高于3%",
+          "blocked": "unsupported_window"
+        },
+        "actual_strategy": {
+          "name": "近3个月股息率高于3%",
+          "query": "近3个月股息率高于3%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_window",
+              "text": "近3个月股息率",
+              "message": "“近3个月股息率”的时间窗口尚未支持，不能替换成其他期间的股息率（月）。请修改后重新解析。"
+            },
+            {
+              "code": "unsupported",
+              "text": "高于3%",
+              "message": "“高于3%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_window",
+            "message": "“近3个月股息率”的时间窗口尚未支持，不能替换成其他期间的股息率（月）。请修改后重新解析。",
+            "source_text": "近3个月股息率"
+          },
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“高于3%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "高于3%"
+          }
+        ]
+      },
+      {
+        "id": "dividend_stable",
+        "query": "分红稳定，PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "dividend_stable",
+          "query": "分红稳定，PE低于15倍",
+          "blocked": "dividend_history_unavailable"
+        },
+        "actual_strategy": {
+          "name": "分红稳定，PE低于15倍",
+          "query": "分红稳定，PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "dividend_history_unavailable",
+              "text": "分红稳定",
+              "message": "多年分红稳定性需要逐年分红记录，不能用近12个月股息率替代。请明确改用股息率，或移除这项要求后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "dividend_history_unavailable",
+            "message": "多年分红稳定性需要逐年分红记录，不能用近12个月股息率替代。请明确改用股息率，或移除这项要求后重新解析。",
+            "source_text": "分红稳定"
+          }
+        ]
+      },
+      {
+        "id": "dividend_years",
+        "query": "连续多年分红，PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "dividend_years",
+          "query": "连续多年分红，PE低于15倍",
+          "blocked": "dividend_history_unavailable"
+        },
+        "actual_strategy": {
+          "name": "连续多年分红，PE低于15倍",
+          "query": "连续多年分红，PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "dividend_history_unavailable",
+              "text": "连续多年分红",
+              "message": "多年分红稳定性需要逐年分红记录，不能用近12个月股息率替代。请明确改用股息率，或移除这项要求后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "dividend_history_unavailable",
+            "message": "多年分红稳定性需要逐年分红记录，不能用近12个月股息率替代。请明确改用股息率，或移除这项要求后重新解析。",
+            "source_text": "连续多年分红"
+          }
+        ]
+      },
+      {
+        "id": "quarter3",
+        "query": "三季报净利润增长超过20%",
+        "pass": true,
+        "expected": {
+          "id": "quarter3",
+          "query": "三季报净利润增长超过20%",
+          "blocked": "unsupported_financial_period"
+        },
+        "actual_strategy": {
+          "name": "三季报净利润增长超过20%",
+          "query": "三季报净利润增长超过20%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "np_yoy",
+              "op": ">",
+              "value": 20.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "净利润增长超过20%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_financial_period",
+              "text": "三季报",
+              "message": "这项财务口径尚未支持；本版本财务条件统一使用2026中报。请改写后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_financial_period",
+            "message": "这项财务口径尚未支持；本版本财务条件统一使用2026中报。请改写后重新解析。",
+            "source_text": "三季报"
+          }
+        ]
+      },
+      {
+        "id": "quarter1",
+        "query": "一季报ROE大于15%",
+        "pass": true,
+        "expected": {
+          "id": "quarter1",
+          "query": "一季报ROE大于15%",
+          "blocked": "unsupported_financial_period"
+        },
+        "actual_strategy": {
+          "name": "一季报ROE大于15%",
+          "query": "一季报ROE大于15%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "roe_ann",
+              "op": ">",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "roe大于15%"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_financial_period",
+              "text": "一季报",
+              "message": "这项财务口径尚未支持；本版本财务条件统一使用2026中报。请改写后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_financial_period",
+            "message": "这项财务口径尚未支持；本版本财务条件统一使用2026中报。请改写后重新解析。",
+            "source_text": "一季报"
+          }
+        ]
+      },
+      {
+        "id": "deducted",
+        "query": "扣非净利润增长超过20%",
+        "pass": true,
+        "expected": {
+          "id": "deducted",
+          "query": "扣非净利润增长超过20%",
+          "blocked": "unsupported_financial_period"
+        },
+        "actual_strategy": {
+          "name": "扣非净利润增长超过20%",
+          "query": "扣非净利润增长超过20%",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_financial_period",
+              "text": "扣非净利润",
+              "message": "这项财务口径尚未支持；本版本财务条件统一使用2026中报。请改写后重新解析。"
+            },
+            {
+              "code": "unsupported",
+              "text": "增长超过20%",
+              "message": "“增长超过20%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_financial_period",
+            "message": "这项财务口径尚未支持；本版本财务条件统一使用2026中报。请改写后重新解析。",
+            "source_text": "扣非净利润"
+          },
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“增长超过20%”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "增长超过20%"
+          }
+        ]
+      },
+      {
+        "id": "double_not",
+        "query": "不排除银行，PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "double_not",
+          "query": "不排除银行，PE低于15倍",
+          "blocked": "complex_negation"
+        },
+        "actual_strategy": {
+          "name": "不排除银行，PE低于15倍",
+          "query": "不排除银行，PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [
+              "881155.TI"
+            ],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "complex_negation",
+              "text": "不排除",
+              "message": "这句话的否定范围需要确认，请明确写出要保留或剔除的行业、指标。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "complex_negation",
+            "message": "这句话的否定范围需要确认，请明确写出要保留或剔除的行业、指标。",
+            "source_text": "不排除"
+          }
+        ]
+      },
+      {
+        "id": "not_not",
+        "query": "不是不要银行，PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "not_not",
+          "query": "不是不要银行，PE低于15倍",
+          "blocked": "complex_negation"
+        },
+        "actual_strategy": {
+          "name": "不是不要银行，PE低于15倍",
+          "query": "不是不要银行，PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [
+              "881155.TI"
+            ],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "complex_negation",
+              "text": "不是不",
+              "message": "这句话的否定范围需要确认，请明确写出要保留或剔除的行业、指标。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "complex_negation",
+            "message": "这句话的否定范围需要确认，请明确写出要保留或剔除的行业、指标。",
+            "source_text": "不是不"
+          }
+        ]
+      },
+      {
+        "id": "ranking",
+        "query": "股息率前10名",
+        "pass": true,
+        "expected": {
+          "id": "ranking",
+          "query": "股息率前10名",
+          "blocked": "unsupported_history_or_ranking"
+        },
+        "actual_strategy": {
+          "name": "股息率前10名",
+          "query": "股息率前10名",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_history_or_ranking",
+              "text": "前10",
+              "message": "这项排名或历史序列要求尚未支持，不能只执行其中的单期指标。请改写后重新解析。"
+            },
+            {
+              "code": "unsupported",
+              "text": "股息率",
+              "message": "“股息率”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_history_or_ranking",
+            "message": "这项排名或历史序列要求尚未支持，不能只执行其中的单期指标。请改写后重新解析。",
+            "source_text": "前10"
+          },
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“股息率”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "股息率"
+          }
+        ]
+      },
+      {
+        "id": "history",
+        "query": "低于自身历史估值分位",
+        "pass": true,
+        "expected": {
+          "id": "history",
+          "query": "低于自身历史估值分位",
+          "blocked": "unsupported_history_or_ranking"
+        },
+        "actual_strategy": {
+          "name": "低于自身历史估值分位",
+          "query": "低于自身历史估值分位",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported_history_or_ranking",
+              "text": "自身历史",
+              "message": "这项排名或历史序列要求尚未支持，不能只执行其中的单期指标。请改写后重新解析。"
+            },
+            {
+              "code": "unsupported",
+              "text": "低于",
+              "message": "“低于”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            },
+            {
+              "code": "unsupported",
+              "text": "估值分位",
+              "message": "“估值分位”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported_history_or_ranking",
+            "message": "这项排名或历史序列要求尚未支持，不能只执行其中的单期指标。请改写后重新解析。",
+            "source_text": "自身历史"
+          },
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“低于”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "低于"
+          },
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“估值分位”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "估值分位"
+          }
+        ]
+      },
+      {
+        "id": "neg_concept",
+        "query": "不要低估值的股票",
+        "pass": true,
+        "expected": {
+          "id": "neg_concept",
+          "query": "不要低估值的股票",
+          "blocked": "unsupported"
+        },
+        "actual_strategy": {
+          "name": "不要低估值的股票",
+          "query": "不要低估值的股票",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported",
+              "text": "低估值",
+              "message": "“低估值”：暂不支持对这一概念直接取反，请明确写出指标和比较方向。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“低估值”：暂不支持对这一概念直接取反，请明确写出指标和比较方向。请修改原句后重新解析。",
+            "source_text": "低估值"
+          }
+        ]
+      },
+      {
+        "id": "refusal",
+        "query": "明天会涨停的股票",
+        "pass": true,
+        "expected": {
+          "id": "refusal",
+          "query": "明天会涨停的股票",
+          "blocked": "refused"
+        },
+        "actual_strategy": {
+          "name": "明天会涨停的股票",
+          "query": "明天会涨停的股票",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "refused",
+              "text": "明天会涨停",
+              "message": "“明天会涨停”：预测未来涨跌。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "refused",
+            "message": "“明天会涨停”：预测未来涨跌。请修改原句后重新解析。",
+            "source_text": "明天会涨停"
+          }
+        ]
+      },
+      {
+        "id": "unknown",
+        "query": "管理层靠谱，PE低于15倍",
+        "pass": true,
+        "expected": {
+          "id": "unknown",
+          "query": "管理层靠谱，PE低于15倍",
+          "blocked": "unsupported"
+        },
+        "actual_strategy": {
+          "name": "管理层靠谱，PE低于15倍",
+          "query": "管理层靠谱，PE低于15倍",
+          "universe": {
+            "base": "all_a",
+            "industries": [],
+            "excluded_industries": [],
+            "exclude_st": true,
+            "min_listed_days": 365,
+            "exclude_bj": false
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "metric": "pe_ttm",
+              "op": "<",
+              "value": 15.0,
+              "basis": "absolute",
+              "concept_id": null,
+              "option_id": null,
+              "label": "你写明的条件",
+              "origin": "explicit",
+              "source_text": "pe低于15倍"
+            }
+          ],
+          "near_miss_tolerance": 0.2,
+          "intent_issues": [
+            {
+              "code": "unsupported",
+              "text": "管理层靠谱",
+              "message": "“管理层靠谱”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。"
+            }
+          ]
+        },
+        "issues": [
+          {
+            "severity": "error",
+            "condition_id": null,
+            "code": "unsupported",
+            "message": "“管理层靠谱”：尚无对应的数据口径，需要改成可量化、受支持的说法。请修改原句后重新解析。",
+            "source_text": "管理层靠谱"
+          }
+        ]
+      }
+    ]
+  },
+  "golden_stock_sets": {
+    "passed": 5,
+    "n": 5,
+    "rows": [
+      {
+        "query": "PE低于15倍",
+        "pass": true,
+        "expected_stocks": [
+          "600102.SH"
+        ],
+        "actual_stocks": [
+          "600102.SH"
+        ],
+        "counts": {
+          "passed": 1,
+          "near_miss": 1,
+          "excluded": 1,
+          "missing": 1
+        },
+        "run_id": "f75920c43605"
+      },
+      {
+        "query": "PE不超过15倍",
+        "pass": true,
+        "expected_stocks": [
+          "600101.SH",
+          "600102.SH"
+        ],
+        "actual_stocks": [
+          "600101.SH",
+          "600102.SH"
+        ],
+        "counts": {
+          "passed": 2,
+          "near_miss": 0,
+          "excluded": 1,
+          "missing": 1
+        },
+        "run_id": "855067c015fe"
+      },
+      {
+        "query": "不要银行股，股息率不低于3%",
+        "pass": true,
+        "expected_stocks": [
+          "600102.SH"
+        ],
+        "actual_stocks": [
+          "600102.SH"
+        ],
+        "counts": {
+          "passed": 1,
+          "near_miss": 0,
+          "excluded": 1,
+          "missing": 1
+        },
+        "run_id": "ecc31904fa15"
+      },
+      {
+        "query": "银行股里PB低于1倍",
+        "pass": true,
+        "expected_stocks": [
+          "600101.SH"
+        ],
+        "actual_stocks": [
+          "600101.SH"
+        ],
+        "counts": {
+          "passed": 1,
+          "near_miss": 0,
+          "excluded": 0,
+          "missing": 0
+        },
+        "run_id": "6eca7ffaebac"
+      },
+      {
+        "query": "近60日波动率低于20%",
+        "pass": true,
+        "expected_stocks": [
+          "600102.SH"
+        ],
+        "actual_stocks": [
+          "600102.SH"
+        ],
+        "counts": {
+          "passed": 1,
+          "near_miss": 0,
+          "excluded": 2,
+          "missing": 1
+        },
+        "run_id": "53fb64dd0ad1"
+      }
+    ]
+  }
+}

@@ -1,0 +1,373 @@
+{
+  "purpose": "Regression acceptance; author-created from explicit requirements and observed failures. Not a blind user benchmark.",
+  "cases": [
+    {
+      "id": "lt_pe",
+      "query": "PE低于15倍",
+      "conditions": [
+        [
+          "pe_ttm",
+          "<",
+          15
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "le_pe",
+      "query": "PE不超过15倍",
+      "conditions": [
+        [
+          "pe_ttm",
+          "<=",
+          15
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "gt_dy",
+      "query": "股息率高于3%",
+      "conditions": [
+        [
+          "div_yield",
+          ">",
+          3
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "ge_dy",
+      "query": "股息率不低于3%",
+      "conditions": [
+        [
+          "div_yield",
+          ">=",
+          3
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "range_pe",
+      "query": "PE在10到20倍之间",
+      "conditions": [
+        [
+          "pe_ttm",
+          "between",
+          [
+            10,
+            20
+          ]
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "bank_not",
+      "query": "不要银行股，股息率高于3%",
+      "conditions": [
+        [
+          "div_yield",
+          ">",
+          3
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": [
+        "银行"
+      ]
+    },
+    {
+      "id": "bank_exclude",
+      "query": "剔除银行，PE低于15倍",
+      "conditions": [
+        [
+          "pe_ttm",
+          "<",
+          15
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": [
+        "银行"
+      ]
+    },
+    {
+      "id": "broker_not",
+      "query": "不要券商，股息率不低于3%",
+      "conditions": [
+        [
+          "div_yield",
+          ">=",
+          3
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": [
+        "证券"
+      ]
+    },
+    {
+      "id": "two_exclude",
+      "query": "剔除银行和券商，PE低于15倍",
+      "conditions": [
+        [
+          "pe_ttm",
+          "<",
+          15
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": [
+        "银行",
+        "证券"
+      ]
+    },
+    {
+      "id": "bank_only",
+      "query": "银行股里PB低于1倍",
+      "conditions": [
+        [
+          "pb_mrq",
+          "<",
+          1
+        ]
+      ],
+      "industries": [
+        "银行"
+      ],
+      "excluded_industries": []
+    },
+    {
+      "id": "wine_only",
+      "query": "白酒股里PE低于15倍",
+      "conditions": [
+        [
+          "pe_ttm",
+          "<",
+          15
+        ]
+      ],
+      "industries": [
+        "白酒"
+      ],
+      "excluded_industries": []
+    },
+    {
+      "id": "vol60",
+      "query": "近60日波动率低于20%",
+      "conditions": [
+        [
+          "vol_60d",
+          "<",
+          20
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "mdd120",
+      "query": "120日最大回撤不超过10%",
+      "conditions": [
+        [
+          "mdd_120d",
+          "<=",
+          10
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "roe_boundary",
+      "query": "ROE大于15%",
+      "conditions": [
+        [
+          "roe_ann",
+          ">",
+          15
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "debt_boundary",
+      "query": "负债率不超过40%",
+      "conditions": [
+        [
+          "debt_ratio",
+          "<=",
+          40
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "revenue",
+      "query": "营收增速超过30%",
+      "conditions": [
+        [
+          "rev_yoy",
+          ">",
+          30
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "profits",
+      "query": "净利润增长不低于20%",
+      "conditions": [
+        [
+          "np_yoy",
+          ">=",
+          20
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "and",
+      "query": "PE低于15倍，股息率不低于3%",
+      "conditions": [
+        [
+          "pe_ttm",
+          "<",
+          15
+        ],
+        [
+          "div_yield",
+          ">=",
+          3
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "dy12",
+      "query": "近12个月股息率高于3%",
+      "conditions": [
+        [
+          "div_yield",
+          ">",
+          3
+        ]
+      ],
+      "industries": [],
+      "excluded_industries": []
+    },
+    {
+      "id": "or_metrics",
+      "query": "PE低于15倍或者股息率高于5%",
+      "blocked": "unsupported_or"
+    },
+    {
+      "id": "or_short",
+      "query": "PE低于15或PB低于1",
+      "blocked": "unsupported_or"
+    },
+    {
+      "id": "or_industry",
+      "query": "银行或证券，股息率高于3%",
+      "blocked": "unsupported_or"
+    },
+    {
+      "id": "or_english",
+      "query": "PE < 15 or PB < 1",
+      "blocked": "unsupported_or"
+    },
+    {
+      "id": "window20",
+      "query": "近20日波动率低于20%",
+      "blocked": "unsupported_window"
+    },
+    {
+      "id": "window30",
+      "query": "30日波动率低于20%",
+      "blocked": "unsupported_window"
+    },
+    {
+      "id": "drawdown60",
+      "query": "近60日最大回撤不超过10%",
+      "blocked": "unsupported_window"
+    },
+    {
+      "id": "dividend3m",
+      "query": "近3个月股息率高于3%",
+      "blocked": "unsupported_window"
+    },
+    {
+      "id": "dividend_stable",
+      "query": "分红稳定，PE低于15倍",
+      "blocked": "dividend_history_unavailable"
+    },
+    {
+      "id": "dividend_years",
+      "query": "连续多年分红，PE低于15倍",
+      "blocked": "dividend_history_unavailable"
+    },
+    {
+      "id": "quarter3",
+      "query": "三季报净利润增长超过20%",
+      "blocked": "unsupported_financial_period"
+    },
+    {
+      "id": "quarter1",
+      "query": "一季报ROE大于15%",
+      "blocked": "unsupported_financial_period"
+    },
+    {
+      "id": "deducted",
+      "query": "扣非净利润增长超过20%",
+      "blocked": "unsupported_financial_period"
+    },
+    {
+      "id": "double_not",
+      "query": "不排除银行，PE低于15倍",
+      "blocked": "complex_negation"
+    },
+    {
+      "id": "not_not",
+      "query": "不是不要银行，PE低于15倍",
+      "blocked": "complex_negation"
+    },
+    {
+      "id": "ranking",
+      "query": "股息率前10名",
+      "blocked": "unsupported_history_or_ranking"
+    },
+    {
+      "id": "history",
+      "query": "低于自身历史估值分位",
+      "blocked": "unsupported_history_or_ranking"
+    },
+    {
+      "id": "neg_concept",
+      "query": "不要低估值的股票",
+      "blocked": "unsupported"
+    },
+    {
+      "id": "refusal",
+      "query": "明天会涨停的股票",
+      "blocked": "refused"
+    },
+    {
+      "id": "unknown",
+      "query": "管理层靠谱，PE低于15倍",
+      "blocked": "unsupported"
+    }
+  ]
+}

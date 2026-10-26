@@ -4,8 +4,8 @@
   都直接取自快照，大模型不参与。
 * 每张卡分三栏：**事实**（数据本身）/ **推断**（按用户选的口径得出的判断）/
   **不确定**（缺失、口径局限、时点差异），对应题目"事实、推断与不确定信息必须区分"。
-* 大模型只可选地写"白话解读"，写完要过 :func:`number_guard` 和合规检查：
-  文中出现的每个数字都必须能在证据里找到，否则整段丢弃并说明原因。
+* 大模型只选择已验证事实的编号；模板按编号回填指标、数值、单位、期间。
+  不接收模型生成的展示文案。旧number_guard保留作历史兼容工具，不作为事实归属的保证。
 """
 from __future__ import annotations
 
@@ -68,7 +68,7 @@ def evidence(ds: Dataset, result: dict, s: Strategy, code: str) -> dict:
         return {"error": "该股票不在当前股票池里"}
     meta = ds.meta.get("sources", {})
     r = ds.frame.loc[code]
-    items, facts, inferences, uncertain = [], [], [], []
+    items, facts, inferences, uncertain = [], [], [], list(row.get("universe_missing", []))
     for c in s.conditions:
         e = evals[c.id]
         m = METRICS_BY_ID[c.metric]
@@ -107,6 +107,9 @@ def evidence(ds: Dataset, result: dict, s: Strategy, code: str) -> dict:
             source["request_id"] = _s(r.get("fin_request_id"))
         elif m.category in ("行情", "流动性", "分红"):
             source["as_of"] = _s(r.get("price_date")) or meta.get("prices", {}).get("last_date")
+        elif c.metric == "listed_days":
+            source["as_of"] = _s(r.get("price_date")) or meta.get("prices", {}).get("last_date")
+            source["request_id"] = _s(r.get("listing_request_id"))
         trace = _raw_trace(ds, code, c.metric)
         item = {
             "condition_id": c.id, "label": c.label or "条件", "condition": describe(c.metric, c.op, c.value, c.basis),
@@ -142,6 +145,8 @@ def evidence(ds: Dataset, result: dict, s: Strategy, code: str) -> dict:
 
 def _verdict(row: dict, items: list[dict]) -> str:
     cat = row["category"]
+    if row.get("universe_missing"):
+        return "股票池资格无法判定：" + "；".join(row["universe_missing"]) + "。不会按入选处理。"
     if cat == "passed":
         return f"满足你设定的全部 {len(items)} 个条件。"
     fails = [i for i in items if i["status"] == "fail"]
@@ -166,6 +171,38 @@ def summary(result: dict, s: Strategy) -> dict:
                      f"去掉它会多出 {imp[0]['removed_adds']} 只。")
     numbers = {n, len(s.conditions), *c.values(), *(i["removed_adds"] for i in result["impact"])}
     return {"text": "".join(lines), "numbers": sorted(numbers)}
+
+
+def explanation_facts(result: dict, s: Strategy) -> dict[str, dict]:
+    """Bind each sentence to its typed source. The model only selects IDs."""
+    facts = {"overview": {"text": summary(result, s)["text"], "source": "engine.counts",
+                          "values": {"universe": result["universe_count"], **result["counts"]}}}
+    for c in s.conditions:
+        facts[f"condition:{c.id}"] = {
+            "text": f"条件“{describe(c.metric, c.op, c.value, c.basis)}”按你确认的口径执行。",
+            "source": "strategy.conditions", "condition_id": c.id, "metric": c.metric,
+            "op": c.op, "value": c.value, "basis": c.basis,
+            "unit": METRICS_BY_ID[c.metric].unit, "period": METRICS_BY_ID[c.metric].period,
+        }
+    for impact in result["impact"]:
+        c = next(c for c in s.conditions if c.id == impact["condition_id"])
+        facts[f"impact:{c.id}"] = {
+            "text": f"去掉“{describe(c.metric, c.op, c.value, c.basis)}”会多出{impact['removed_adds']}只；这只是条件变化的影响。",
+            "source": "engine.impact", "condition_id": c.id, "removed_adds": impact["removed_adds"],
+        }
+    return facts
+
+
+def render_fact_selection(selection: dict, facts: dict[str, dict]) -> tuple[str, list[dict]]:
+    if set(selection) != {"fact_ids"}:
+        raise ValueError("模型必须只返回事实编号")
+    ids = selection["fact_ids"]
+    if not isinstance(ids, list) or not 1 <= len(ids) <= 3 or not all(isinstance(i, str) for i in ids):
+        raise ValueError("事实编号需为1至3项")
+    if len(set(ids)) != len(ids) or any(i not in facts for i in ids):
+        raise ValueError("事实编号不存在或重复")
+    chosen = [{"id": i, **facts[i]} for i in ids]
+    return "\n".join(f"• {f['text']}" for f in chosen), chosen
 
 
 _NUM_RE = re.compile(r"-?\d+(?:,\d{3})*(?:\.\d+)?")
