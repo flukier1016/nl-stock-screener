@@ -149,7 +149,7 @@ function renderTop() {
   } else {
     const warnings = [];
     if (m.data_warning) warnings.push(m.data_warning);
-    (m.data_notes || []).filter((n) => n.includes("历史快照") || n.includes("时点无法解析")).forEach((n) => warnings.push(n));
+    (m.data_notes || []).filter((n) => n.includes("历史快照") || n.includes("时点无法解析") || n.includes("上市日期")).forEach((n) => warnings.push(n));
     if (m.build?.status === "failed") warnings.push("最近一次数据更新失败，当前仍显示上一份快照，请核对数据时点。");
     if (modelHealth.status === "auth_failed") warnings.push("AI 鉴权失败，当前使用规则解析；无法完整识别的要求会暂停执行。");
     b.innerHTML = warnings.length ? `<div class="bar down">${icon("alert")}${warnings.map(esc).join("　")}</div>` : "";
@@ -492,6 +492,7 @@ async function openEvidence(q) {
         <div class="src"><span>来源</span><span>${esc(it.source.provider)}</span><span>字段</span><span><code>${esc(it.source.fields)}</code></span>
           <span>口径期</span><span>${esc(it.source.period)}　单位 ${esc(it.source.unit)}</span>
           ${it.source.as_of ? `<span>时点</span><span>${esc(it.source.as_of)}</span>` : ""}${it.source.request_id ? `<span>request_id</span><span><code>${esc(it.source.request_id)}</code></span>` : ""}</div>
+          ${it.source.cached_snapshot ? `<p class="small muted">上市日期来源：历史快照 ${esc(it.source.cached_snapshot)}</p>` : ""}
       </div>`).join("");
     const list = (a) => (a.length ? `<ul>${a.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : `<div class="muted">无</div>`);
     openDrawer(`

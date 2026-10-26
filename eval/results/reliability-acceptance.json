@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-26T01:02:18+00:00",
+  "generated_at": "2026-10-26T01:15:30+00:00",
   "purpose": "Regression acceptance, not real-user accuracy or investment performance",
   "cases_sha256": "c1b3ab20d3449e492dfa5f2f84cf761cac0ed3ac68653aab75c12836a50764e6",
   "intent_gates": {

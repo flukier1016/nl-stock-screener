@@ -37,6 +37,29 @@ def listing_dates(values: pd.Series) -> pd.Series:
     return pd.to_datetime(values.map(one))
 
 
+def resolve_listing_dates(frame: pd.DataFrame, previous: pd.DataFrame | None, snapshot_id: str) -> dict:
+    """Prefer fresh metadata; retain traced, immutable IPO dates on null responses."""
+    fresh = listing_dates(frame["list_date"])
+    frame["list_date_source_snapshot"] = "current_metadata"
+    used = pd.Series(False, index=frame.index)
+    if previous is not None and "list_date" in previous:
+        old = previous.set_index("thscode") if "thscode" in previous else previous
+        codes = frame["thscode"] if "thscode" in frame else pd.Series(frame.index, index=frame.index)
+        cached = listing_dates(codes.map(old["list_date"]))
+        used = fresh.isna() & cached.notna()
+        fresh = fresh.fillna(cached)
+        lineage = codes.map(old["list_date_source_snapshot"]) if "list_date_source_snapshot" in old else pd.Series(snapshot_id, index=frame.index)
+        lineage = lineage.replace("current_metadata", snapshot_id).fillna(snapshot_id)
+        frame.loc[used, "list_date_source_snapshot"] = lineage[used]
+        if "listing_request_id" in old:
+            if "listing_request_id" not in frame:
+                frame["listing_request_id"] = None
+            frame.loc[used, "listing_request_id"] = codes.map(old["listing_request_id"])[used]
+    frame["list_date"] = fresh
+    return {"from_current_metadata": int((fresh.notna() & ~used).sum()),
+            "from_verified_snapshot": int(used.sum()), "missing": int(fresh.isna().sum())}
+
+
 def quality_report(frame: pd.DataFrame, *, mode: str = "live") -> dict:
     errors: list[str] = []
     count = len(frame)

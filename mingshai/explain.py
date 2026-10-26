@@ -110,6 +110,10 @@ def evidence(ds: Dataset, result: dict, s: Strategy, code: str) -> dict:
         elif c.metric == "listed_days":
             source["as_of"] = _s(r.get("price_date")) or meta.get("prices", {}).get("last_date")
             source["request_id"] = _s(r.get("listing_request_id"))
+            cached = _s(r.get("list_date_source_snapshot"))
+            if cached and cached != "current_metadata":
+                source["cached_snapshot"] = cached
+                uncertain.append(f"上市日期沿用历史快照{cached}的原始字段；上市年限按当前行情日期重新计算。")
         trace = _raw_trace(ds, code, c.metric)
         item = {
             "condition_id": c.id, "label": c.label or "条件", "condition": describe(c.metric, c.op, c.value, c.basis),

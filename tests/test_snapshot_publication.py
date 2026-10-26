@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from mingshai import app as appmod
 from mingshai.data import build, repair
+from mingshai.data.quality import resolve_listing_dates
 from mingshai.store import Store, load_demo, load_snapshot
 
 storemod = importlib.import_module("mingshai.store")
@@ -98,3 +99,14 @@ def test_admin_backup_and_repair_require_authentication():
     client = TestClient(appmod.app)
     assert client.get("/api/admin/snapshot").status_code == 401
     assert client.post("/api/admin/repair-listings").status_code == 401
+
+
+def test_null_bulk_metadata_uses_known_dates_but_never_fills_unknown_stocks():
+    import pandas as pd
+    current = pd.DataFrame({"thscode": ["A", "B", "C"], "list_date": ["2021-01-01", None, None]})
+    previous = pd.DataFrame({"thscode": ["A", "B"], "list_date": ["2001-01-01", "2002-01-01"]})
+    result = resolve_listing_dates(current, previous, "prior-verified")
+    assert current["list_date"].dt.strftime("%Y-%m-%d").tolist()[:2] == ["2021-01-01", "2002-01-01"]
+    assert pd.isna(current.loc[2, "list_date"])
+    assert current.loc[1, "list_date_source_snapshot"] == "prior-verified"
+    assert result == {"from_current_metadata": 1, "from_verified_snapshot": 1, "missing": 1}
