@@ -1,7 +1,8 @@
 [project]
 name = "nl-stock-screener"
 version = "0.2.1"
-description = "明筛：自然语言选股与策略解释器。大模型只把话翻译成条件，确定性引擎出结果，每个数字回到扶摇原始字段。"
+description = "A natural-language A-share screener with deterministic filtering and traceable evidence."
+license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
